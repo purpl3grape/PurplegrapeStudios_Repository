@@ -1,0 +1,1221 @@
+fileFormatVersion: 2
+guid: cc778f4e4ad4d84449e9e80f868e8194
+ModelImporter:
+  serializedVersion: 23
+  fileIDToRecycleName:
+    100000: //RootNode
+    100002: BarryCharacter
+    100004: Chest
+    100006: FingerBase_Left
+    100008: FingerBase_Right
+    100010: FingerTip_Left
+    100012: FingerTip_Right
+    100014: Foot_Left
+    100016: Foot_Right
+    100018: Forearm_Left
+    100020: Forearm_Right
+    100022: Hand_Left
+    100024: Hand_Right
+    100026: Head
+    100028: Hips
+    100030: Mesh
+    100032: Neck
+    100034: Shin_Left
+    100036: Shin_Right
+    100038: Shoulder_Left
+    100040: Shoulder_Right
+    100042: Spine
+    100044: ThumbBase_Left
+    100046: ThumbBase_Right
+    100048: ThumbTip_Left
+    100050: ThumbTip_Right
+    100052: Toe_Left
+    100054: Toe_Right
+    100056: UpperArm_Left
+    100058: UpperArm_Right
+    100060: UpperLeg_Left
+    100062: UpperLeg_Right
+    400000: //RootNode
+    400002: BarryCharacter
+    400004: Chest
+    400006: FingerBase_Left
+    400008: FingerBase_Right
+    400010: FingerTip_Left
+    400012: FingerTip_Right
+    400014: Foot_Left
+    400016: Foot_Right
+    400018: Forearm_Left
+    400020: Forearm_Right
+    400022: Hand_Left
+    400024: Hand_Right
+    400026: Head
+    400028: Hips
+    400030: Mesh
+    400032: Neck
+    400034: Shin_Left
+    400036: Shin_Right
+    400038: Shoulder_Left
+    400040: Shoulder_Right
+    400042: Spine
+    400044: ThumbBase_Left
+    400046: ThumbBase_Right
+    400048: ThumbTip_Left
+    400050: ThumbTip_Right
+    400052: Toe_Left
+    400054: Toe_Right
+    400056: UpperArm_Left
+    400058: UpperArm_Right
+    400060: UpperLeg_Left
+    400062: UpperLeg_Right
+    2100000: Jump City Material
+    4300000: Mesh
+    7400000: BarryCharacter|Barry_PoseLib
+    7400002: BarryCharacter|BarryAssaultRifleAimDown
+    7400004: BarryCharacter|BarryAssaultRifleAimFireDown
+    7400006: BarryCharacter|BarryAssaultRifleAimFireStraight
+    7400008: BarryCharacter|BarryAssaultRifleAimFireUp
+    7400010: BarryCharacter|BarryAssaultRifleAimStraight
+    7400012: BarryCharacter|BarryAssaultRifleAimUp
+    7400014: BarryCharacter|BarryAssaultRifleFireDown
+    7400016: BarryCharacter|BarryAssaultRifleFireStraight
+    7400018: BarryCharacter|BarryAssaultRifleFireUp
+    7400020: BarryCharacter|BarryAssaultRifleIdleDown
+    7400022: BarryCharacter|BarryAssaultRifleIdleStraight
+    7400024: BarryCharacter|BarryAssaultRifleIdleUp
+    7400026: BarryCharacter|BarryAssaultRifleRunDown
+    7400028: BarryCharacter|BarryAssaultRifleRunStraight
+    7400030: BarryCharacter|BarryAssaultRifleRunUp
+    7400032: BarryCharacter|BarryAssaultRifleWalkDown
+    7400034: BarryCharacter|BarryAssaultRifleWalkStraight
+    7400036: BarryCharacter|BarryAssaultRifleWalkUp
+    7400038: BarryCharacter|BarryDeath
+    7400040: BarryCharacter|BarryJump
+    7400042: BarryCharacter|BarryOrig
+    7400044: BarryCharacter|BarryRun
+    9500000: //RootNode
+    13700000: Mesh
+    2186277476908879412: ImportLogs
+  externalObjects: {}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: "\nClip 'BarryCharacter|Barry_PoseLib' has import animation
+      warnings that might lower retargeting quality:\nNote: Activate translation DOF
+      on avatar to improve retargeting quality.\n\t'Shoulder_Left' has translation
+      animation that will be discarded.\n\t'Shoulder_Right' has translation animation
+      that will be discarded.\n"
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 3
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations:
+    - serializedVersion: 16
+      name: BarryCharacter|Barry_PoseLib
+      takeName: BarryCharacter|Barry_PoseLib
+      firstFrame: 0
+      lastFrame: 23
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: BarryCharacter|BarryAssaultRifleAimDown
+      takeName: BarryCharacter|BarryAssaultRifleAimDown
+      firstFrame: 0
+      lastFrame: 100
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: BarryCharacter|BarryAssaultRifleAimFireDown
+      takeName: BarryCharacter|BarryAssaultRifleAimFireDown
+      firstFrame: 0
+      lastFrame: 4
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: BarryCharacter|BarryAssaultRifleAimFireStraight
+      takeName: BarryCharacter|BarryAssaultRifleAimFireStraight
+      firstFrame: 0
+      lastFrame: 4
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: BarryCharacter|BarryAssaultRifleAimFireUp
+      takeName: BarryCharacter|BarryAssaultRifleAimFireUp
+      firstFrame: 0
+      lastFrame: 4
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: BarryCharacter|BarryAssaultRifleAimStraight
+      takeName: BarryCharacter|BarryAssaultRifleAimStraight
+      firstFrame: 0
+      lastFrame: 100
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: BarryCharacter|BarryAssaultRifleAimUp
+      takeName: BarryCharacter|BarryAssaultRifleAimUp
+      firstFrame: 0
+      lastFrame: 100
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: BarryCharacter|BarryAssaultRifleFireDown
+      takeName: BarryCharacter|BarryAssaultRifleFireDown
+      firstFrame: 0
+      lastFrame: 4
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: BarryCharacter|BarryAssaultRifleFireStraight
+      takeName: BarryCharacter|BarryAssaultRifleFireStraight
+      firstFrame: 0
+      lastFrame: 4
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: BarryCharacter|BarryAssaultRifleFireUp
+      takeName: BarryCharacter|BarryAssaultRifleFireUp
+      firstFrame: 0
+      lastFrame: 4
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: BarryCharacter|BarryAssaultRifleIdleDown
+      takeName: BarryCharacter|BarryAssaultRifleIdleDown
+      firstFrame: 0
+      lastFrame: 100
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: BarryCharacter|BarryAssaultRifleIdleStraight
+      takeName: BarryCharacter|BarryAssaultRifleIdleStraight
+      firstFrame: 0
+      lastFrame: 100
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: BarryCharacter|BarryAssaultRifleIdleUp
+      takeName: BarryCharacter|BarryAssaultRifleIdleUp
+      firstFrame: 0
+      lastFrame: 100
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: BarryCharacter|BarryAssaultRifleRunDown
+      takeName: BarryCharacter|BarryAssaultRifleRunDown
+      firstFrame: 0
+      lastFrame: 16
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: BarryCharacter|BarryAssaultRifleRunStraight
+      takeName: BarryCharacter|BarryAssaultRifleRunStraight
+      firstFrame: 0
+      lastFrame: 16
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: BarryCharacter|BarryAssaultRifleRunUp
+      takeName: BarryCharacter|BarryAssaultRifleRunUp
+      firstFrame: 0
+      lastFrame: 16
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: BarryCharacter|BarryAssaultRifleWalkDown
+      takeName: BarryCharacter|BarryAssaultRifleWalkDown
+      firstFrame: 0
+      lastFrame: 40
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: BarryCharacter|BarryAssaultRifleWalkStraight
+      takeName: BarryCharacter|BarryAssaultRifleWalkStraight
+      firstFrame: 0
+      lastFrame: 40
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: BarryCharacter|BarryAssaultRifleWalkUp
+      takeName: BarryCharacter|BarryAssaultRifleWalkUp
+      firstFrame: 0
+      lastFrame: 40
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: BarryCharacter|BarryDeath
+      takeName: BarryCharacter|BarryDeath
+      firstFrame: 0
+      lastFrame: 45
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: BarryCharacter|BarryJump
+      takeName: BarryCharacter|BarryJump
+      firstFrame: 0
+      lastFrame: 10
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: BarryCharacter|BarryOrig
+      takeName: BarryCharacter|BarryOrig
+      firstFrame: 0
+      lastFrame: 20
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: BarryCharacter|BarryRun
+      takeName: BarryCharacter|BarryRun
+      firstFrame: 0
+      lastFrame: 20
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+    previousCalculatedGlobalScale: 0.01
+    hasPreviousCalculatedGlobalScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human:
+    - boneName: Hips
+      humanName: Hips
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: UpperLeg_Left
+      humanName: LeftUpperLeg
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: UpperLeg_Right
+      humanName: RightUpperLeg
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Shin_Left
+      humanName: LeftLowerLeg
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Shin_Right
+      humanName: RightLowerLeg
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Foot_Left
+      humanName: LeftFoot
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Foot_Right
+      humanName: RightFoot
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Spine
+      humanName: Spine
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Neck
+      humanName: Neck
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Head
+      humanName: Head
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Shoulder_Left
+      humanName: LeftShoulder
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Shoulder_Right
+      humanName: RightShoulder
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: UpperArm_Left
+      humanName: LeftUpperArm
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: UpperArm_Right
+      humanName: RightUpperArm
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Forearm_Left
+      humanName: LeftLowerArm
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Forearm_Right
+      humanName: RightLowerArm
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Hand_Left
+      humanName: LeftHand
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Hand_Right
+      humanName: RightHand
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Toe_Left
+      humanName: LeftToes
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Toe_Right
+      humanName: RightToes
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: ThumbBase_Left
+      humanName: Left Thumb Proximal
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: ThumbTip_Left
+      humanName: Left Thumb Intermediate
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: FingerBase_Left
+      humanName: Left Index Proximal
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: FingerTip_Left
+      humanName: Left Index Intermediate
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: ThumbBase_Right
+      humanName: Right Thumb Proximal
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: ThumbTip_Right
+      humanName: Right Thumb Intermediate
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: FingerBase_Right
+      humanName: Right Index Proximal
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: FingerTip_Right
+      humanName: Right Index Intermediate
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Chest
+      humanName: Chest
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    skeleton:
+    - name: Barry(Clone)
+      parentName: 
+      position: {x: 0, y: 0, z: 0}
+      rotation: {x: 0, y: 0, z: 0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: BarryCharacter
+      parentName: Barry(Clone)
+      position: {x: -0, y: 3.5, z: 0}
+      rotation: {x: 0.000000015454313, y: 0.7071067, z: -0.000000015454312, w: 0.7071068}
+      scale: {x: 100, y: 100, z: 100}
+    - name: Hips
+      parentName: BarryCharacter
+      position: {x: -0, y: 0, z: 0}
+      rotation: {x: -0.50000006, y: 0.50000006, z: -0.49999997, w: 0.49999994}
+      scale: {x: 1.0000001, y: 1, z: 1.0000005}
+    - name: Spine
+      parentName: Hips
+      position: {x: -0.008279936, y: 1.0587912e-24, z: 1.2858248e-24}
+      rotation: {x: -0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1.0000001, z: 0.99999994}
+    - name: Chest
+      parentName: Spine
+      position: {x: -0.014504025, y: -3.5527136e-17, z: 1.490116e-10}
+      rotation: {x: 0.000000029802322, y: 0.000000029802322, z: -0, w: 1}
+      scale: {x: 1.0000004, y: 1.0000006, z: 1.0000006}
+    - name: Neck
+      parentName: Chest
+      position: {x: -0.008766777, y: 6.707026e-11, z: 2.386514e-10}
+      rotation: {x: -0.000000029802322, y: -0.000000029802322, z: -0, w: 1}
+      scale: {x: 1.0000007, y: 1.000001, z: 1.0000011}
+    - name: Head
+      parentName: Neck
+      position: {x: -0.0027742956, y: -7.626882e-11, z: -4.4656087e-10}
+      rotation: {x: -0, y: -0, z: -0, w: 1}
+      scale: {x: 1.0000002, y: 1.0000002, z: 1}
+    - name: Shoulder_Left
+      parentName: Chest
+      position: {x: -0.008766777, y: 0.003994988, z: 1.816079e-10}
+      rotation: {x: 0.4595547, y: -0.53741, z: 0.5374099, w: -0.45955473}
+      scale: {x: 0.9999999, y: 1.0000002, z: 1.0000002}
+    - name: UpperArm_Left
+      parentName: Shoulder_Left
+      position: {x: -0.007863358, y: 1.8626451e-11, z: -0.0000000017136335}
+      rotation: {x: 0.7051939, y: -0.051975496, z: 0.051975556, w: 0.70519406}
+      scale: {x: 1.0000006, y: 1.0000007, z: 1.0000001}
+    - name: Forearm_Left
+      parentName: UpperArm_Left
+      position: {x: -0.014592801, y: -0.0000000010430813, z: -0.0000000047683715}
+      rotation: {x: -0.9998477, y: -0.017452389, z: -0.000000044703484, w: -0.0000003427267}
+      scale: {x: 0.9999997, y: 1.0000001, z: 0.9999998}
+    - name: Hand_Left
+      parentName: Forearm_Left
+      position: {x: -0.010493236, y: -1.4901161e-10, z: -8.9406965e-10}
+      rotation: {x: 0.0000002539933, y: -0.000000040874614, z: 0.0017441214, w: 0.9999985}
+      scale: {x: 1.0000002, y: 1, z: 1.0000001}
+    - name: ThumbBase_Left
+      parentName: Hand_Left
+      position: {x: -0.0038258003, y: -0.0019133217, z: 0.000000001527369}
+      rotation: {x: 0.68245006, y: -0.20855662, z: -0.24340473, w: -0.656902}
+      scale: {x: 1.0000004, y: 1.0000004, z: 1.0000007}
+    - name: ThumbTip_Left
+      parentName: ThumbBase_Left
+      position: {x: -0.0030665344, y: 3.7252902e-11, z: 5.2154064e-10}
+      rotation: {x: -0.7065196, y: -0.028811358, z: 0.028811255, w: -0.70651954}
+      scale: {x: 1.0000004, y: 1.0000006, z: 1.0000002}
+    - name: FingerBase_Left
+      parentName: Hand_Left
+      position: {x: -0.0038859325, y: -5.9604643e-10, z: 0.0000000018440186}
+      rotation: {x: -0.000000029787614, y: -0.0000000018725892, z: 0.015708478, w: 0.9998767}
+      scale: {x: 1.0000008, y: 1.0000007, z: 0.99999994}
+    - name: FingerTip_Left
+      parentName: FingerBase_Left
+      position: {x: -0.0038799476, y: -0.000000001490116, z: -3.0733643e-10}
+      rotation: {x: -0, y: -0, z: -5.577996e-17, w: 1}
+      scale: {x: 1, y: 0.99999976, z: 1.0000001}
+    - name: Shoulder_Right
+      parentName: Chest
+      position: {x: -0.008766777, y: -0.0039949873, z: 2.9802322e-10}
+      rotation: {x: -0.4595547, y: -0.53741, z: -0.53741, w: -0.4595547}
+      scale: {x: 1.0000008, y: 1.0000007, z: 1.0000005}
+    - name: UpperArm_Right
+      parentName: Shoulder_Right
+      position: {x: -0.007863359, y: 4.842877e-10, z: -8.1956386e-10}
+      rotation: {x: 0.70519394, y: 0.05197545, z: 0.051975578, w: -0.7051941}
+      scale: {x: 1.0000008, y: 1.0000005, z: 1}
+    - name: Forearm_Right
+      parentName: UpperArm_Right
+      position: {x: -0.014592802, y: 8.9406965e-10, z: -2.9802322e-10}
+      rotation: {x: -0.99984777, y: 0.017452372, z: -0.00000004470348, w: 0.00000013411044}
+      scale: {x: 0.99999976, y: 0.99999994, z: 1}
+    - name: Hand_Right
+      parentName: Forearm_Right
+      position: {x: -0.010493237, y: -0.0000000010430813, z: 0.0000000014528632}
+      rotation: {x: -0.00000022340926, y: 0.0000000036657302, z: -0.0017442403, w: 0.99999845}
+      scale: {x: 1.0000002, y: 1.0000001, z: 1.0000001}
+    - name: ThumbBase_Right
+      parentName: Hand_Right
+      position: {x: -0.0038258014, y: 0.0019133195, z: 8.9406965e-10}
+      rotation: {x: 0.6824498, y: 0.20855723, z: -0.24340504, w: 0.65690196}
+      scale: {x: 1.0000004, y: 1.0000008, z: 1.0000005}
+    - name: ThumbTip_Right
+      parentName: ThumbBase_Right
+      position: {x: -0.0030665314, y: -0.0000000010430813, z: 0}
+      rotation: {x: -0.70651966, y: 0.028811337, z: 0.02881123, w: 0.7065196}
+      scale: {x: 1.0000002, y: 1.000001, z: 1.0000004}
+    - name: FingerBase_Right
+      parentName: Hand_Right
+      position: {x: -0.0038859348, y: 0, z: 0.000000002980232}
+      rotation: {x: 0.000000074039505, y: -0.00000007426805, z: -0.015708445, w: 0.9998767}
+      scale: {x: 0.9999998, y: 1.0000004, z: 1.0000006}
+    - name: FingerTip_Right
+      parentName: FingerBase_Right
+      position: {x: -0.0038799485, y: 5.9604643e-10, z: 0.0000000010430813}
+      rotation: {x: 0.000000059604645, y: 0.000000029802326, z: 3.3618147e-15, w: 1}
+      scale: {x: 1.0000004, y: 1.0000004, z: 1.0000005}
+    - name: UpperLeg_Left
+      parentName: Hips
+      position: {x: -0.0008217025, y: 0.005409878, z: -3.7275138e-11}
+      rotation: {x: -0.0012455583, y: -0.70710576, z: 0.70710564, w: 0.001245439}
+      scale: {x: 1.0000049, y: 1.0000012, z: 0.9999999}
+    - name: Shin_Left
+      parentName: UpperLeg_Left
+      position: {x: -0.01480559, y: 5.3707677e-10, z: -2.956949e-10}
+      rotation: {x: 0.7071058, y: -0.0012455792, z: 0.0012454181, w: 0.7071056}
+      scale: {x: 0.99999934, y: 1.0000004, z: 1.000002}
+    - name: Foot_Left
+      parentName: Shin_Left
+      position: {x: -0.017006444, y: 4.8287147e-10, z: 1.20834185e-11}
+      rotation: {x: -0.00000029802322, y: -0.41706005, z: -0.00000011920929, w: 0.9088789}
+      scale: {x: 1.0000002, y: 1, z: 1.0000006}
+    - name: Toe_Left
+      parentName: Foot_Left
+      position: {x: -0.0051476364, y: 6.789935e-10, z: -4.448575e-10}
+      rotation: {x: 0.00000060447246, y: -0.3477685, z: 0.0000001906265, w: 0.9375805}
+      scale: {x: 1.0000001, y: 0.9999996, z: 0.9999995}
+    - name: UpperLeg_Right
+      parentName: Hips
+      position: {x: -0.0008217025, y: -0.005409878, z: -3.7275155e-11}
+      rotation: {x: 0.001245603, y: -0.7071057, z: -0.70710564, w: 0.0012454689}
+      scale: {x: 1.0000045, y: 1.0000008, z: 1.0000001}
+    - name: Shin_Right
+      parentName: UpperLeg_Right
+      position: {x: -0.01480559, y: -8.1424784e-11, z: 9.522773e-10}
+      rotation: {x: 0.70710576, y: 0.001245603, z: 0.0012454268, w: -0.70710564}
+      scale: {x: 0.99999964, y: 1.000001, z: 1.000002}
+    - name: Foot_Right
+      parentName: Shin_Right
+      position: {x: -0.017006444, y: -5.2799237e-10, z: 0.0000000010270381}
+      rotation: {x: 0.00000014901161, y: -0.41706005, z: 0.000000074505806, w: 0.908879}
+      scale: {x: 1.000001, y: 1.0000004, z: 1.0000002}
+    - name: Toe_Right
+      parentName: Foot_Right
+      position: {x: -0.0051476406, y: -4.435232e-10, z: -0.0000000012764059}
+      rotation: {x: -0.00000048438056, y: -0.3477685, z: -0.0000001582647, w: 0.9375805}
+      scale: {x: 1.0000007, y: 1.0000001, z: 1.0000001}
+    - name: Mesh
+      parentName: Barry(Clone)
+      position: {x: 0.00000004870149, y: 4.6141605, z: -0.00000004870148}
+      rotation: {x: -0.00000014106499, y: 0.000000059604645, z: -0.000000021855685,
+        w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 1
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 3
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -1,0 +1,74 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!319 &31900000
+AvatarMask:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: Leg Animations
+  m_Mask: 00000000000000000000000001000000010000000000000000000000000000000000000000000000000000000000000000000000
+  m_Elements:
+  - m_Path: 
+    m_Weight: 1
+  - m_Path: BarryCharacter
+    m_Weight: 1
+  - m_Path: BarryCharacter/Hips
+    m_Weight: 1
+  - m_Path: BarryCharacter/Hips/Spine
+    m_Weight: 1
+  - m_Path: BarryCharacter/Hips/Spine/Chest
+    m_Weight: 1
+  - m_Path: BarryCharacter/Hips/Spine/Chest/Neck
+    m_Weight: 1
+  - m_Path: BarryCharacter/Hips/Spine/Chest/Neck/Head
+    m_Weight: 1
+  - m_Path: BarryCharacter/Hips/Spine/Chest/Shoulder_Left
+    m_Weight: 1
+  - m_Path: BarryCharacter/Hips/Spine/Chest/Shoulder_Left/UpperArm_Left
+    m_Weight: 1
+  - m_Path: BarryCharacter/Hips/Spine/Chest/Shoulder_Left/UpperArm_Left/Forearm_Left
+    m_Weight: 1
+  - m_Path: BarryCharacter/Hips/Spine/Chest/Shoulder_Left/UpperArm_Left/Forearm_Left/Hand_Left
+    m_Weight: 1
+  - m_Path: BarryCharacter/Hips/Spine/Chest/Shoulder_Left/UpperArm_Left/Forearm_Left/Hand_Left/FingerBase_Left
+    m_Weight: 1
+  - m_Path: BarryCharacter/Hips/Spine/Chest/Shoulder_Left/UpperArm_Left/Forearm_Left/Hand_Left/FingerBase_Left/FingerTip_Left
+    m_Weight: 1
+  - m_Path: BarryCharacter/Hips/Spine/Chest/Shoulder_Left/UpperArm_Left/Forearm_Left/Hand_Left/ThumbBase_Left
+    m_Weight: 1
+  - m_Path: BarryCharacter/Hips/Spine/Chest/Shoulder_Left/UpperArm_Left/Forearm_Left/Hand_Left/ThumbBase_Left/ThumbTip_Left
+    m_Weight: 1
+  - m_Path: BarryCharacter/Hips/Spine/Chest/Shoulder_Right
+    m_Weight: 1
+  - m_Path: BarryCharacter/Hips/Spine/Chest/Shoulder_Right/UpperArm_Right
+    m_Weight: 1
+  - m_Path: BarryCharacter/Hips/Spine/Chest/Shoulder_Right/UpperArm_Right/Forearm_Right
+    m_Weight: 1
+  - m_Path: BarryCharacter/Hips/Spine/Chest/Shoulder_Right/UpperArm_Right/Forearm_Right/Hand_Right
+    m_Weight: 1
+  - m_Path: BarryCharacter/Hips/Spine/Chest/Shoulder_Right/UpperArm_Right/Forearm_Right/Hand_Right/FingerBase_Right
+    m_Weight: 1
+  - m_Path: BarryCharacter/Hips/Spine/Chest/Shoulder_Right/UpperArm_Right/Forearm_Right/Hand_Right/FingerBase_Right/FingerTip_Right
+    m_Weight: 1
+  - m_Path: BarryCharacter/Hips/Spine/Chest/Shoulder_Right/UpperArm_Right/Forearm_Right/Hand_Right/ThumbBase_Right
+    m_Weight: 1
+  - m_Path: BarryCharacter/Hips/Spine/Chest/Shoulder_Right/UpperArm_Right/Forearm_Right/Hand_Right/ThumbBase_Right/ThumbTip_Right
+    m_Weight: 1
+  - m_Path: BarryCharacter/Hips/UpperLeg_Left
+    m_Weight: 1
+  - m_Path: BarryCharacter/Hips/UpperLeg_Left/Shin_Left
+    m_Weight: 1
+  - m_Path: BarryCharacter/Hips/UpperLeg_Left/Shin_Left/Foot_Left
+    m_Weight: 1
+  - m_Path: BarryCharacter/Hips/UpperLeg_Left/Shin_Left/Foot_Left/Toe_Left
+    m_Weight: 1
+  - m_Path: BarryCharacter/Hips/UpperLeg_Right
+    m_Weight: 1
+  - m_Path: BarryCharacter/Hips/UpperLeg_Right/Shin_Right
+    m_Weight: 1
+  - m_Path: BarryCharacter/Hips/UpperLeg_Right/Shin_Right/Foot_Right
+    m_Weight: 1
+  - m_Path: BarryCharacter/Hips/UpperLeg_Right/Shin_Right/Foot_Right/Toe_Right
+    m_Weight: 1
+  - m_Path: Mesh
+    m_Weight: 1
