@@ -15,7 +15,7 @@ MonoBehaviour:
   VoiceAppID: 
   ChatAppID: 
   HostType: 1
-  PreferredRegion: 8
+  PreferredRegion: 0
   EnabledRegions: -1
   Protocol: 0
   ServerAddress: 
@@ -27,31 +27,23 @@ MonoBehaviour:
   NetworkLogging: 1
   RunInBackground: 1
   RpcList:
+  - ChangeScore
   - Chat
   - DestroyRpc
   - InstantiateRpc
   - PickupItemInit
+  - PlayerStatsResetScore
   - PunPickup
   - PunPickupSimple
   - PunRespawn
   - RequestForPickupItems
   - RequestForPickupTimes
-  - RPC_LoadedGameScene
-  - RPC_LoadgameOthers
-  - RPC_CreatePlayer
-  - RPC_NewHealth
-  - SetKnockBackOverride
-  - RPC_InitHealth
-  - RPC_ChangeHealth
-  - AddStats
-  - ChangeScore
-  - PlayerStatsResetScore
   - ResetLastKilled
   - ResetScore
+  - RPC_LoadedGameScene
+  - RPC_LoadgameOthers
+  - SetKnockBackOverride
   - SetLastKilled
   - SetScore
   - UpdateStatsForKiller
-  - BulletFXRPC
-  - RPC_RespawnPlayer
-  - RPC_CreateBumperCar
   DisableAutoOpenWizard: 1
