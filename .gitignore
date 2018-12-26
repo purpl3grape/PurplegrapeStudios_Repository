@@ -4,9 +4,9 @@
 [Bb]uild/
 [Bb]uilds/
 Assets/AssetStoreTools*
-Assets/Photon Unity Networking/
-Assets/PhotonChatApi/
-Assets/OPS/
+Assets/Photon Unity Networking
+Assets/PhotonChatApi
+Assets/OPS
 
 # Visual Studio cache directory
 .vs/
