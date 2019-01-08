@@ -26,8 +26,8 @@ public class PlayerManagement : MonoBehaviour {
     IEnumerator RefreshPlayerStatsCoroutine;
 
     private void Awake () {
-
-        if (!PhotonNetwork.connected) {
+        if (!PhotonNetwork.connected)
+        {
             SceneManager.LoadScene(0);
         }
 
