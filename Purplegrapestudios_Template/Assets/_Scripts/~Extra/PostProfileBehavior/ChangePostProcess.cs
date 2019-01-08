@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿/*
+ * using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.PostProcessing;
@@ -103,3 +104,4 @@ public class ChangePostProcess : MonoBehaviour {
         //collisionScript.collidedTransform = null;
     }
 }
+*/

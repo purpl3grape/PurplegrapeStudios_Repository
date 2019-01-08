@@ -66,7 +66,12 @@ ModelImporter:
     4300018: RimWheelFrontLeft
     4300020: WheelFrontRight
     4300022: RimWheelFrontRight
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: ArcadeCarMaterial
+    second: {fileID: 2100000, guid: a70e4f2311e556e49b5e72dae17b1023, type: 2}
   materials:
     importMaterials: 1
     materialName: 0
@@ -100,6 +105,7 @@ ModelImporter:
     globalScale: 1
     meshCompression: 0
     addColliders: 0
+    useSRGBMaterialColor: 1
     importVisibility: 1
     importBlendShapes: 1
     importCameras: 1
@@ -124,6 +130,9 @@ ModelImporter:
     normalImportMode: 0
     tangentImportMode: 3
     normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
   importAnimation: 1
   copyAvatar: 0
   humanDescription:

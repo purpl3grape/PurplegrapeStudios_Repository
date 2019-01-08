@@ -132,7 +132,7 @@ public class NetworkSettingsDisplay : MonoBehaviour {
         NetworkSettingsDisplay.Instance.Text_FrameRate.text = _frameRate.ToString();
 
         Application.targetFrameRate = (int)_frameRate;
-        Time.fixedDeltaTime = 1 / (float)Application.targetFrameRate;
+        //Time.fixedDeltaTime = 1 / (float)Application.targetFrameRate;
 
         //PlayerPrefs.SetFloat(SyncYAxisValuePlayerPref, value);
         //PlayerPrefs.Save();
