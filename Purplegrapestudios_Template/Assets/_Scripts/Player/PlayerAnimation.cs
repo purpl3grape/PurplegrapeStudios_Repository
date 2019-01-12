@@ -10,166 +10,174 @@ public enum PlayerCameraView
 
 public class PlayerAnimation : MonoBehaviour {
 
-    public NetworkPlayerMovement networkPlayerMovement;
-    public PlayerMovement playerMovement;
-    public PlayerShooting playerShooting;
-    public MouseLook mouseLook;
-    public Animator animator_3rdPerson;
-    public Animator animator_1stPerson;
-    public PhotonView photonView;
-    public Camera PlayerCamera;
-    public Camera DeathCamera;
+    /// <summary>
+    /// VARIABLE SECTION
+    /// </summary>
+    //Player components required in animating the player
+    private NetworkPlayerMovement NetworkPlayerMovement;
+    private PlayerMovement PlayerMovement;
+    private PlayerShooting PlayerShooting;
+    private MouseLook PlayerMouseLook;
+    private Animator Animator_1stPerson;
+    private Animator Animator_3rdPerson;
+    private PhotonView PhotonView;
+    private Camera PlayerCamera;
+    private Camera DeathCamera;
 
-    //ANIMATOR PARAMETERS (FOR HASHING)
-    int Param_3rdPersonLowerBody;
-    int Param_3rdPersonUpperBody;
-    int Param_3rdPerson_AimAngle;
-    int JumpBool;
-    int DeathBool;
-    int Param_1stPersonUpperBody_AR;
+    //Animator Component: Parameters (Parameters Hashed. We update these values for actual animation to happen)
+    private int Param_3rdPersonLowerBody;
+    private int Param_3rdPersonUpperBody;
+    private int Param_3rdPerson_AimAngle;
+    private int Param_JumpBool;
+    private int Param_DeathBool;
+    private int Param_1stPersonUpperBody_AR;
 
-    //VARIABLES TO TRACK ANIMATION STATES
-    int stateInt_3rdPersonUpperBody;
-    int stateInt_3rdPersonLowerBody;
-    bool stateBool_3rdPersonJump;
-    bool stateBool_3rdPersonDeath;
-    int stateInt_1stPersonArms;
+    //Networked PlayerAnimator Component: Parameter values
+    private int Anim_INT_AssaultRifle;           //For TPS View Only (Set by !Photonview.isMine)
+    private int Anim_INT_AssaultRifle_Current;   //For TPS View Only (Set by !Photonview.isMine)
+    private int Anim_INT_LegRunning;             //For TPS View Only (Set by !Photonview.isMine)
+    private bool Anim_BOOL_Jump;                 //For TPS View Only (Set by !Photonview.isMine)
+    private bool Anim_BOOL_Death;                //For TPS View Only (Set by !Photonview.isMine)
 
-    //OTHER VARIABLES
-    bool armPriorityAnimation;
-    bool shotPriorityAnimation;
+    //Local PlayerAnimator Component: Parameter values
+    private int AnimLocal_INT_UpperBody;    //For TPS View (Set by PhtonView.isMine)
+    private int AnimLocal_INT_LowerBody;    //For TPS View (Set by PhtonView.isMine)
+    private bool AnimLocal_BOOL_Jump;       //For TPS View (Set by PhtonView.isMine)
+    private bool AnimLocal_BOOL_Death;      //For TPS View (Set by PhtonView.isMine)
+    private int AnimLocal_INT_Arms;         //For FPS view (Set by PhtonView.isMine)
 
-    //PLAYER CAMERA VIEW VARIABLES
-    public PlayerCameraView playerCameraView;
+    //Variables to control animation priorities
+    private bool armPriorityAnimation;
+    private bool shotPriorityAnimation;
+
+    //Player camer view variables (This is for switching between First and Third person views)
+    [HideInInspector] public PlayerCameraView playerCameraView;
     private PlayerCameraView originalPlayerCamerView;
 
-    // Use this for initialization
-    void Start () {
+
+    private void Start () {
+
+        NetworkPlayerMovement = GetComponent<NetworkPlayerMovement>();
+        PlayerMovement = GetComponent<PlayerMovement>();
+        PlayerShooting = GetComponent<PlayerShooting>();
+        PlayerMouseLook = GetComponent<PlayerObjectComponents>().PlayerCamera.GetComponent<MouseLook>();
+        Animator_1stPerson = GetComponent<PlayerObjectComponents>().animator1;
+        Animator_3rdPerson = GetComponent<PlayerObjectComponents>().animator3;
+        PhotonView = GetComponent<PhotonView>();
+        PlayerCamera = GetComponent<PlayerObjectComponents>().PlayerCamera.GetComponent<Camera>();
+        DeathCamera = GetComponent<PlayerObjectComponents>().DeathCamera.GetComponent<Camera>();
 
         playerCameraView = PlayerCameraView.FirstPerson;
 
-        if (playerMovement.movementType.Equals(MovementType.Player))
+        if (PlayerMovement.movementType.Equals(MovementType.Player))
         {
             Param_3rdPersonLowerBody = Animator.StringToHash("Param_3rdPersonLowerBody");
             Param_3rdPersonUpperBody = Animator.StringToHash("Param_3rdPersonUpperBody");
             Param_3rdPerson_AimAngle = Animator.StringToHash("Param_3rdPerson_AimAngle");
-            JumpBool = Animator.StringToHash("JumpBool");
-            DeathBool = Animator.StringToHash("DeathBool");
+            Param_JumpBool = Animator.StringToHash("JumpBool");
+            Param_DeathBool = Animator.StringToHash("DeathBool");
             Param_1stPersonUpperBody_AR = Animator.StringToHash("Param_1stPersonUpperBody_AR");
         }
     }
 
-    // Update is called once per frame
-    void Update () {
+    private void Update () {
 
-        //1ST PERSON ANIMATION UPDATE
-        if (photonView.isMine)
+        //Animation Behavior of Our Controlled Character
+        if (PhotonView.isMine)
         {
-            if (playerMovement.movementType.Equals(MovementType.Player))
+            if (PlayerMovement.movementType.Equals(MovementType.Player))
             {
-                AnimationUpdate_1stPerson();
+                //Only Animate 
+                AnimationBehavior_OurPlayer();
             }
-
-            if (InputManager.Instance.GetKeyDown(InputCode.SwitchPerspective))
-            {
-                if (EventManager.Instance.GetScore(photonView.owner.NickName, PlayerStatCodes.Health) > 0)
-                {
-                    if (playerCameraView.Equals(PlayerCameraView.FirstPerson))
-                    {
-                        SwitchCameraPerspective(PlayerCameraView.ThirdPerson);
-                    }
-                    else if (playerCameraView.Equals(PlayerCameraView.ThirdPerson))
-                    {
-                        SwitchCameraPerspective(PlayerCameraView.FirstPerson);
-                    }
-                }
-            }
+            SwitchCameraBehavior();
         }
         else
         {
-            //3RD PERSON ANIMATION UPDATE
-            AnimationUpdate_3rdPerson();
+            //Animation Behavior of Networked Characters
+            //Variables are baseed off NetworkPlayerMovement values provided based on (HP / Speed / Grounded / etc...)
+            AnimationBehavior_NetworkedPlayers();
         }
-
     }
 
-
-    //3RD PERSON ANIMATION
-    void AnimationUpdate_3rdPerson()
+    /// <summary>
+    /// 3RD Person Animation
+    /// </summary>
+    private void AnimationBehavior_NetworkedPlayers()
     {
-        if (networkPlayerMovement.networkedMovementType.Equals(MovementType.Player))
+        if (NetworkPlayerMovement.NetworkMovementType.Equals(MovementType.Player))
         {
 
-            if (networkPlayerMovement.otherPlayerHealth > 0)
+            if (NetworkPlayerMovement.NetworkPlayerHealth > 0)
             {
-                networkPlayerMovement.otherPlayerCurrentAimAngle = Mathf.Lerp(networkPlayerMovement.otherPlayerCurrentAimAngle, networkPlayerMovement.otherPlayerAimAngle, .2f);
-                SetStateFloat_3rdPersonAimAngle(networkPlayerMovement.otherPlayerCurrentAimAngle / 90);
+                NetworkPlayerMovement.NetworkPlayerCurrentAimAngle = Mathf.Lerp(NetworkPlayerMovement.NetworkPlayerCurrentAimAngle, NetworkPlayerMovement.NetworkPlayerAimAngle, .2f);
+                SetStateFloat_3rdPersonAimAngle(NetworkPlayerMovement.NetworkPlayerCurrentAimAngle / 90);
 
 
                 //OTHER PLAYER(S) ON NETWORK IS ALIVE
                 //1) SET THEIR RECEIVED DEATH STATE TO FALSE
-                if (networkPlayerMovement.receivedNetworked_DeathState)
+                if (Anim_BOOL_Death)
                 {
-                    networkPlayerMovement.receivedNetworked_DeathState = false;
-                    SetStateBool_3rdPersonDeath(networkPlayerMovement.receivedNetworked_DeathState);
+                    Anim_BOOL_Death = false;
+                    SetStateBool_3rdPersonDeath(Anim_BOOL_Death);
                 }
 
 
-                if (!networkPlayerMovement.otherPlayerFloorDetected)
+                if (!NetworkPlayerMovement.NetworkPlayerFloorDetected)
                 {
-                    if (networkPlayerMovement.receivedNetworked_JumpState != true)
+                    if (Anim_BOOL_Jump != true)
                     {
-                        networkPlayerMovement.receivedNetworked_JumpState = true;
-                        SetStateBool_3rdPersonJump(networkPlayerMovement.receivedNetworked_JumpState);
+                        Anim_BOOL_Jump = true;
+                        SetStateBool_3rdPersonJump(Anim_BOOL_Jump);
                     }
                 }
                 else
                 {
-                    if (networkPlayerMovement.receivedNetworked_JumpState != false)
+                    if (Anim_BOOL_Jump != false)
                     {
-                        networkPlayerMovement.receivedNetworked_JumpState = false;
-                        SetStateBool_3rdPersonJump(networkPlayerMovement.receivedNetworked_JumpState);
+                        Anim_BOOL_Jump = false;
+                        SetStateBool_3rdPersonJump(Anim_BOOL_Jump);
                     }
-                    if (networkPlayerMovement.otherPlayerVelocity.magnitude > 15)
+                    if (NetworkPlayerMovement.NetworkPlayerVelocity.magnitude > 15)
                     {
-                        if (networkPlayerMovement.receivedNetworked_LegRunningStateID != 1)
+                        if (Anim_INT_LegRunning != 1)
                         {
-                            networkPlayerMovement.receivedNetworked_LegRunningStateID = 1;
-                            SetStateInt_3rdPersonLowerBody(networkPlayerMovement.receivedNetworked_LegRunningStateID);   //Networked PlayerLeg Mesh Anim (Received)
+                            Anim_INT_LegRunning = 1;
+                            SetStateInt_3rdPersonLowerBody(Anim_INT_LegRunning);   //Networked PlayerLeg Mesh Anim (Received)
                         }
                     }
-                    else if (networkPlayerMovement.otherPlayerVelocity.magnitude <= 15 && networkPlayerMovement.otherPlayerVelocity.magnitude > 0)
+                    else if (NetworkPlayerMovement.NetworkPlayerVelocity.magnitude <= 15 && NetworkPlayerMovement.NetworkPlayerVelocity.magnitude > 0)
                     {
-                        if (networkPlayerMovement.receivedNetworked_LegRunningStateID != 1)
+                        if (Anim_INT_LegRunning != 1)
                         {
-                            networkPlayerMovement.receivedNetworked_LegRunningStateID = 1;
-                            SetStateInt_3rdPersonLowerBody(networkPlayerMovement.receivedNetworked_LegRunningStateID);   //Networked PlayerLeg Mesh Anim (Received)
+                            Anim_INT_LegRunning = 1;
+                            SetStateInt_3rdPersonLowerBody(Anim_INT_LegRunning);   //Networked PlayerLeg Mesh Anim (Received)
                         }
                     }
                     else
                     {
-                        if (networkPlayerMovement.receivedNetworked_LegRunningStateID != 0)
+                        if (Anim_INT_LegRunning != 0)
                         {
-                            networkPlayerMovement.receivedNetworked_LegRunningStateID = 0;
-                            SetStateInt_3rdPersonLowerBody(networkPlayerMovement.receivedNetworked_LegRunningStateID);   //Networked PlayerLeg Mesh Anim (Received)
+                            Anim_INT_LegRunning = 0;
+                            SetStateInt_3rdPersonLowerBody(Anim_INT_LegRunning);   //Networked PlayerLeg Mesh Anim (Received)
                         }
                     }
                 }
 
                 //OTHER PLAYER UPPER BODY HANDLED HERR
-                if (networkPlayerMovement.currentNetworked_Assault_StateID != networkPlayerMovement.receivedNetworked_Assault_StateID)
+                if (Anim_INT_AssaultRifle_Current != Anim_INT_AssaultRifle)
                 {
-                    networkPlayerMovement.currentNetworked_Assault_StateID = networkPlayerMovement.receivedNetworked_Assault_StateID;
-                    SetStateInt_3rdPersonUpperBody(networkPlayerMovement.currentNetworked_Assault_StateID);   //Networked PlayerArm Mesh Anim (Received)
+                    Anim_INT_AssaultRifle_Current = Anim_INT_AssaultRifle;
+                    SetStateInt_3rdPersonUpperBody(Anim_INT_AssaultRifle_Current);   //Networked PlayerArm Mesh Anim (Received)
                 }
             }
             else
             {
                 //DEATH: OTHER PLAYER HEALTH LESS THAN OR EQUAL 0
-                if (!networkPlayerMovement.receivedNetworked_DeathState)
+                if (!Anim_BOOL_Death)
                 {
-                    networkPlayerMovement.receivedNetworked_DeathState = true;
-                    SetStateBool_3rdPersonDeath(networkPlayerMovement.receivedNetworked_DeathState);
+                    Anim_BOOL_Death = true;
+                    SetStateBool_3rdPersonDeath(Anim_BOOL_Death);
 
                     SetStateFloat_3rdPersonAimAngle(0);
                 }
@@ -177,19 +185,19 @@ public class PlayerAnimation : MonoBehaviour {
         }
     }
 
-    //
 
-    //1ST PERSON ANIMATION
-    void AnimationUpdate_1stPerson()
+    /// <summary>
+    /// 1ST Person Animation
+    /// </summary>
+    private void AnimationBehavior_OurPlayer()
     {
-
         //PLAYER IS ALIVE
-        if (EventManager.Instance.GetScore(photonView.owner.NickName, PlayerStatCodes.Health) > 0)
+        if (EventManager.Instance.GetScore(PhotonView.owner.NickName, PlayerStatCodes.Health) > 0)
         {
-            SetStateFloat_3rdPersonAimAngle(mouseLook.GetCameraRotationY() / 90);    ///TO SHOW THE ANIMATION (OPTIONAL - FOR DEBUGGING)
+            SetStateFloat_3rdPersonAimAngle(PlayerMouseLook.GetCameraRotationY() / 90);    ///TO SHOW THE ANIMATION (OPTIONAL - FOR DEBUGGING)
 
             //1) SET DEATHBOOL TO FALSE (SET BOTH 1ST AND 3RD PERSON - AND AFFECTS WHOLE BODY)
-            if (stateBool_3rdPersonDeath)
+            if (AnimLocal_BOOL_Death)
             {
                 DeathCamera.enabled = false;
                 PlayerCamera.enabled = true;
@@ -197,137 +205,137 @@ public class PlayerAnimation : MonoBehaviour {
                 if (originalPlayerCamerView.Equals(PlayerCameraView.FirstPerson))
                     GetComponent<PlayerAnimation>().SwitchCameraPerspective(PlayerCameraView.FirstPerson);
 
-                stateBool_3rdPersonDeath = false;
-                SetStateBool_3rdPersonDeath(stateBool_3rdPersonDeath);
+                AnimLocal_BOOL_Death = false;
+                SetStateBool_3rdPersonDeath(AnimLocal_BOOL_Death);
             }
 
             //SHOOTING (UPPER BODY)
-            if (playerShooting.isFiringBullet)
+            if (PlayerShooting.isFiringBullet)
             {
                 armPriorityAnimation = true;
 
-                if (playerShooting.isAiming)
+                if (PlayerShooting.isAiming)
                 {
                     //AIM FIRE UPPER BODY
-                    if (stateInt_1stPersonArms != 3)
+                    if (AnimLocal_INT_Arms != 3)
                     {
-                        stateInt_1stPersonArms = 3;
-                        stateInt_3rdPersonUpperBody = 3;
-                        SetStateInt_1stPersonArms(stateInt_1stPersonArms);  //Local AR AimFire
-                        SetStateInt_3rdPersonUpperBody(stateInt_3rdPersonUpperBody);    ///TO SHOW THE ANIMATION (OPTIONAL - FOR DEBUGGING)
+                        AnimLocal_INT_Arms = 3;
+                        AnimLocal_INT_UpperBody = 3;
+                        SetStateInt_1stPersonArms(AnimLocal_INT_Arms);  //Local AR AimFire
+                        SetStateInt_3rdPersonUpperBody(AnimLocal_INT_UpperBody);    ///TO SHOW THE ANIMATION (OPTIONAL - FOR DEBUGGING)
                     }
                 }
                 else
                 {
                     //FIRE UPPER BODY
-                    if (stateInt_1stPersonArms != 2)
+                    if (AnimLocal_INT_Arms != 2)
                     {
-                        stateInt_1stPersonArms = 2;
-                        stateInt_3rdPersonUpperBody = 2;
-                        SetStateInt_1stPersonArms(stateInt_1stPersonArms);  //Local AR Fire
-                        SetStateInt_3rdPersonUpperBody(stateInt_3rdPersonUpperBody);    ///TO SHOW THE ANIMATION (OPTIONAL - FOR DEBUGGING)
+                        AnimLocal_INT_Arms = 2;
+                        AnimLocal_INT_UpperBody = 2;
+                        SetStateInt_1stPersonArms(AnimLocal_INT_Arms);  //Local AR Fire
+                        SetStateInt_3rdPersonUpperBody(AnimLocal_INT_UpperBody);    ///TO SHOW THE ANIMATION (OPTIONAL - FOR DEBUGGING)
                     }
                 }
             }
-            else if (playerShooting.isAiming)
+            else if (PlayerShooting.isAiming)
             {
                 armPriorityAnimation = true;
-                if (playerShooting.isFiringBullet)
+                if (PlayerShooting.isFiringBullet)
                 {
-                    if (stateInt_1stPersonArms != 2)
+                    if (AnimLocal_INT_Arms != 2)
                     {
-                        stateInt_1stPersonArms = 2;
-                        stateInt_3rdPersonUpperBody = 2;
-                        SetStateInt_1stPersonArms(stateInt_1stPersonArms);  //Local AR Fire
-                        SetStateInt_3rdPersonUpperBody(stateInt_3rdPersonUpperBody);    ///TO SHOW THE ANIMATION (OPTIONAL - FOR DEBUGGING)
+                        AnimLocal_INT_Arms = 2;
+                        AnimLocal_INT_UpperBody = 2;
+                        SetStateInt_1stPersonArms(AnimLocal_INT_Arms);  //Local AR Fire
+                        SetStateInt_3rdPersonUpperBody(AnimLocal_INT_UpperBody);    ///TO SHOW THE ANIMATION (OPTIONAL - FOR DEBUGGING)
                     }
                 }
                 else
                 {    //AIM UPPER BODY
-                    if (stateInt_1stPersonArms != 1)
+                    if (AnimLocal_INT_Arms != 1)
                     {
-                        stateInt_1stPersonArms = 1;
-                        stateInt_3rdPersonUpperBody = 1;
-                        SetStateInt_1stPersonArms(stateInt_1stPersonArms);  //Local AR Aim
-                        SetStateInt_3rdPersonUpperBody(stateInt_3rdPersonUpperBody);    ///TO SHOW THE ANIMATION (OPTIONAL - FOR DEBUGGING)
+                        AnimLocal_INT_Arms = 1;
+                        AnimLocal_INT_UpperBody = 1;
+                        SetStateInt_1stPersonArms(AnimLocal_INT_Arms);  //Local AR Aim
+                        SetStateInt_3rdPersonUpperBody(AnimLocal_INT_UpperBody);    ///TO SHOW THE ANIMATION (OPTIONAL - FOR DEBUGGING)
                     }
                 }
             }
-            else if (!playerShooting.isAiming && !playerShooting.isFiringBullet)
+            else if (!PlayerShooting.isAiming && !PlayerShooting.isFiringBullet)
             {
                 //IDLE UPPER BODY (NOT SHOOTING)
                 if (!armPriorityAnimation)
                 {
-                    stateInt_1stPersonArms = 0;
-                    stateInt_3rdPersonUpperBody = 0;
-                    SetStateInt_1stPersonArms(stateInt_1stPersonArms);  //Local Arms Idle
-                    SetStateInt_3rdPersonUpperBody(stateInt_3rdPersonUpperBody);    ///TO SHOW THE ANIMATION (OPTIONAL - FOR DEBUGGING)
+                    AnimLocal_INT_Arms = 0;
+                    AnimLocal_INT_UpperBody = 0;
+                    SetStateInt_1stPersonArms(AnimLocal_INT_Arms);  //Local Arms Idle
+                    SetStateInt_3rdPersonUpperBody(AnimLocal_INT_UpperBody);    ///TO SHOW THE ANIMATION (OPTIONAL - FOR DEBUGGING)
                 }
                 armPriorityAnimation = false;
             }
 
 
             //MOVEMENT (WHOLE BODY)
-            if (playerMovement.floorDetected)
+            if (PlayerMovement.playerMovementSettings.V_IsFloorDetected)
             {
                 //JUMP
-                if (stateBool_3rdPersonJump != false)
+                if (AnimLocal_BOOL_Jump != false)
                 {
-                    stateBool_3rdPersonJump = false;
-                    SetStateBool_3rdPersonJump(stateBool_3rdPersonJump);    ///TO SHOW THE ANIMATION (OPTIONAL - FOR DEBUGGING)
+                    AnimLocal_BOOL_Jump = false;
+                    SetStateBool_3rdPersonJump(AnimLocal_BOOL_Jump);    ///TO SHOW THE ANIMATION (OPTIONAL - FOR DEBUGGING)
                 }
 
-                if (playerMovement.playerVelocity.magnitude > 15)
+                if (PlayerMovement.playerMovementSettings.V_PlayerVelocity.magnitude > 15)
                 {
                     //RUNNING LOWER BODY
-                    if (stateInt_3rdPersonLowerBody != 1)
+                    if (AnimLocal_INT_LowerBody != 1)
                     {
-                        stateInt_3rdPersonLowerBody = 1;
-                        SetStateInt_3rdPersonLowerBody(stateInt_3rdPersonLowerBody);    ///TO SHOW THE ANIMATION (OPTIONAL - FOR DEBUGGING)
+                        AnimLocal_INT_LowerBody = 1;
+                        SetStateInt_3rdPersonLowerBody(AnimLocal_INT_LowerBody);    ///TO SHOW THE ANIMATION (OPTIONAL - FOR DEBUGGING)
                     }
                     //RUNNING UPPER BODY
-                    if (stateInt_1stPersonArms != 5 && !armPriorityAnimation)
+                    if (AnimLocal_INT_Arms != 5 && !armPriorityAnimation)
                     {
-                        stateInt_1stPersonArms = 5;
-                        stateInt_3rdPersonUpperBody = 5;
-                        SetStateInt_1stPersonArms(stateInt_1stPersonArms);  //Local Arms Run
-                        SetStateInt_3rdPersonUpperBody(stateInt_3rdPersonUpperBody);    ///TO SHOW THE ANIMATION (OPTIONAL - FOR DEBUGGING)
+                        AnimLocal_INT_Arms = 5;
+                        AnimLocal_INT_UpperBody = 5;
+                        SetStateInt_1stPersonArms(AnimLocal_INT_Arms);  //Local Arms Run
+                        SetStateInt_3rdPersonUpperBody(AnimLocal_INT_UpperBody);    ///TO SHOW THE ANIMATION (OPTIONAL - FOR DEBUGGING)
                     }
                 }
-                else if (playerMovement.playerVelocity.magnitude <= 15 && playerMovement.playerVelocity.magnitude > 0)
+                else if (PlayerMovement.playerMovementSettings.V_PlayerVelocity.magnitude <= 15 && PlayerMovement.playerMovementSettings.V_PlayerVelocity.magnitude > 0)
                 {
                     //WALKING LOWER BODY
-                    if (stateInt_3rdPersonLowerBody != 1)
+                    if (AnimLocal_INT_LowerBody != 1)
                     {
-                        stateInt_3rdPersonLowerBody = 1;
-                        SetStateInt_3rdPersonLowerBody(stateInt_3rdPersonLowerBody);    ///TO SHOW THE ANIMATION (OPTIONAL - FOR DEBUGGING)
+                        AnimLocal_INT_LowerBody = 1;
+                        SetStateInt_3rdPersonLowerBody(AnimLocal_INT_LowerBody);    ///TO SHOW THE ANIMATION (OPTIONAL - FOR DEBUGGING)
                     }
                     //WALKING UPPER BODY
-                    if (stateInt_1stPersonArms != 4 && !armPriorityAnimation)
+                    if (AnimLocal_INT_Arms != 4 && !armPriorityAnimation)
                     {
-                        stateInt_1stPersonArms = 4;
-                        stateInt_3rdPersonLowerBody = 4;
-                        SetStateInt_1stPersonArms(stateInt_1stPersonArms);  //Local Arms Walk
-                        SetStateInt_3rdPersonUpperBody(stateInt_3rdPersonLowerBody);    ///TO SHOW THE ANIMATION (OPTIONAL - FOR DEBUGGING)
+                        AnimLocal_INT_Arms = 4;
+                        AnimLocal_INT_LowerBody = 4;
+                        SetStateInt_1stPersonArms(AnimLocal_INT_Arms);  //Local Arms Walk
+                        SetStateInt_3rdPersonUpperBody(AnimLocal_INT_LowerBody);    ///TO SHOW THE ANIMATION (OPTIONAL - FOR DEBUGGING)
                     }
                 }
                 else
                 {
                     //IDLE LOWER BODY (HANDLED IN MOVEMENT/JUMP BECAUSE WANT JUMP ANIMATION TO TAKE PRIORITY)
-                    if (stateInt_3rdPersonLowerBody != 0)
+                    if (AnimLocal_INT_LowerBody != 0)
                     {
-                        stateInt_3rdPersonLowerBody = 0;
-                        SetStateInt_3rdPersonLowerBody(stateInt_3rdPersonLowerBody);    ///TO SHOW THE ANIMATION (OPTIONAL - FOR DEBUGGING)
+                        AnimLocal_INT_LowerBody = 0;
+                        SetStateInt_3rdPersonLowerBody(AnimLocal_INT_LowerBody);    ///TO SHOW THE ANIMATION (OPTIONAL - FOR DEBUGGING)
                     }
                 }
             }
             else
             {
                 //JUMPING (SET BOTH 1ST AND 3RD PERSON - AND AFFECTS WHOLE BODY)
-                if (stateBool_3rdPersonJump != true)
+                if (AnimLocal_BOOL_Jump != true)
                 {
-                    stateBool_3rdPersonJump = true;
-                    SetStateBool_3rdPersonJump(stateBool_3rdPersonJump);    ///TO SHOW THE ANIMATION (OPTIONAL - FOR DEBUGGING)
+                    AnimLocal_BOOL_Jump = true;
+                    SetStateBool_3rdPersonJump(AnimLocal_BOOL_Jump);    ///TO SHOW THE ANIMATION (OPTIONAL - FOR DEBUGGING)
                 }
 
             }
@@ -337,7 +345,7 @@ public class PlayerAnimation : MonoBehaviour {
         else
         {
             //DEATH ANIMATION: LESS THAN OR EQUAL TO 0 HP
-            if (!stateBool_3rdPersonDeath)
+            if (!AnimLocal_BOOL_Death)
             {
                 originalPlayerCamerView = playerCameraView;
                 if (originalPlayerCamerView.Equals(PlayerCameraView.FirstPerson))
@@ -345,8 +353,8 @@ public class PlayerAnimation : MonoBehaviour {
 
                 DeathCamera.enabled = true;
                 PlayerCamera.enabled = false;
-                stateBool_3rdPersonDeath = true;
-                SetStateBool_3rdPersonDeath(stateBool_3rdPersonDeath);
+                AnimLocal_BOOL_Death = true;
+                SetStateBool_3rdPersonDeath(AnimLocal_BOOL_Death);
 
                 SetStateFloat_3rdPersonAimAngle(0);    ///TO SHOW THE ANIMATION (OPTIONAL - FOR DEBUGGING)
             }
@@ -354,58 +362,78 @@ public class PlayerAnimation : MonoBehaviour {
         }
 
     }
-    //
 
 
-    //SET ANIMATOR STATES
-    public void SetStateInt_3rdPersonLowerBody(int val)
+    /// <summary>
+    /// Set Animator Component Parameters
+    /// </summary>
+    private void SetStateInt_3rdPersonLowerBody(int val)
     {
-        if ((playerCameraView.Equals(PlayerCameraView.ThirdPerson) || !photonView.isMine) && animator_3rdPerson.gameObject.GetActive())
-            animator_3rdPerson.SetFloat(Param_3rdPersonLowerBody, val);
+        if ((playerCameraView.Equals(PlayerCameraView.ThirdPerson) || !PhotonView.isMine) && Animator_3rdPerson.gameObject.GetActive())
+            Animator_3rdPerson.SetFloat(Param_3rdPersonLowerBody, val);
     }
 
-    public void SetStateInt_3rdPersonUpperBody(int val)
+    private void SetStateInt_3rdPersonUpperBody(int val)
     {
-        if ((playerCameraView.Equals(PlayerCameraView.ThirdPerson) || !photonView.isMine) && animator_3rdPerson.gameObject.GetActive())
-            animator_3rdPerson.SetInteger(Param_3rdPersonUpperBody, val);
+        if ((playerCameraView.Equals(PlayerCameraView.ThirdPerson) || !PhotonView.isMine) && Animator_3rdPerson.gameObject.GetActive())
+            Animator_3rdPerson.SetInteger(Param_3rdPersonUpperBody, val);
     }
 
-    public void SetStateBool_3rdPersonJump(bool val)
+    private void SetStateBool_3rdPersonJump(bool val)
     {
-        if ((playerCameraView.Equals(PlayerCameraView.ThirdPerson) || !photonView.isMine) && animator_3rdPerson.gameObject.GetActive())
-            animator_3rdPerson.SetBool(JumpBool, val);
+        if ((playerCameraView.Equals(PlayerCameraView.ThirdPerson) || !PhotonView.isMine) && Animator_3rdPerson.gameObject.GetActive())
+            Animator_3rdPerson.SetBool(Param_JumpBool, val);
     }
 
-    public void SetStateBool_3rdPersonDeath(bool val)
+    private void SetStateBool_3rdPersonDeath(bool val)
     {
-        if ((playerCameraView.Equals(PlayerCameraView.ThirdPerson) || !photonView.isMine) && animator_3rdPerson.gameObject.GetActive())
-            animator_3rdPerson.SetBool(DeathBool, val);
+        if ((playerCameraView.Equals(PlayerCameraView.ThirdPerson) || !PhotonView.isMine) && Animator_3rdPerson.gameObject.GetActive())
+            Animator_3rdPerson.SetBool(Param_DeathBool, val);
     }
 
-    public void SetStateFloat_3rdPersonAimAngle(float val)
+    private void SetStateFloat_3rdPersonAimAngle(float val)
     {
-        if ((playerCameraView.Equals(PlayerCameraView.ThirdPerson) || !photonView.isMine) && animator_3rdPerson.gameObject.GetActive())
-            animator_3rdPerson.SetFloat(Param_3rdPerson_AimAngle, val);
+        if ((playerCameraView.Equals(PlayerCameraView.ThirdPerson) || !PhotonView.isMine) && Animator_3rdPerson.gameObject.GetActive())
+            Animator_3rdPerson.SetFloat(Param_3rdPerson_AimAngle, val);
     }
 
-    public void SetStateInt_1stPersonArms(int val)
+    private void SetStateInt_1stPersonArms(int val)
     {
         if (playerCameraView.Equals(PlayerCameraView.FirstPerson))
-            animator_1stPerson.SetInteger(Param_1stPersonUpperBody_AR, val);
+            Animator_1stPerson.SetInteger(Param_1stPersonUpperBody_AR, val);
     }
 
-
-    //SWITCH BETWEEN FIRST PERSON AND THIRD PERSON CAMERA VIEW
-    public void SwitchCameraPerspective(PlayerCameraView view)
+    /// <summary>
+    /// UPDATE: Switch camera view behavior
+    /// </summary>
+    private void SwitchCameraBehavior()
     {
-        if (playerMovement.movementType.Equals(MovementType.BumperCar))
-            playerMovement.PlayerEvents_ChangeMovementType(photonView.owner.ID, MovementType.Player);
+        if (InputManager.Instance.GetKeyDown(InputCode.SwitchPerspective))
+        {
+            if (EventManager.Instance.GetScore(PhotonView.owner.NickName, PlayerStatCodes.Health) > 0)
+            {
+                if (playerCameraView.Equals(PlayerCameraView.FirstPerson))
+                {
+                    SwitchCameraPerspective(PlayerCameraView.ThirdPerson);
+                }
+                else if (playerCameraView.Equals(PlayerCameraView.ThirdPerson))
+                {
+                    SwitchCameraPerspective(PlayerCameraView.FirstPerson);
+                }
+            }
+        }
+    }
 
+    /// <summary>
+    /// Switch between First Person and Third Person camera view
+    /// </summary>
+    private void SwitchCameraPerspective(PlayerCameraView view)
+    {
         //GetComponent<PlayerObjectComponents>().PlayerCamera.GetComponent<Camera>().cullingMask ^= 1 << LayerMask.NameToLayer("Player");
-        stateInt_3rdPersonUpperBody = -1;
-        stateInt_3rdPersonLowerBody = -1;
-        stateBool_3rdPersonJump = !stateBool_3rdPersonJump;
-        stateInt_1stPersonArms = -1;
+        AnimLocal_INT_UpperBody = -1;
+        AnimLocal_INT_LowerBody = -1;
+        AnimLocal_BOOL_Jump = !AnimLocal_BOOL_Jump;
+        AnimLocal_INT_Arms = -1;
 
         if (view.Equals(PlayerCameraView.FirstPerson))
         {

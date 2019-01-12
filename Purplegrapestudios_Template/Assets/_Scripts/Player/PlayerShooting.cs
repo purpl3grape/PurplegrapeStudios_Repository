@@ -50,7 +50,7 @@ public class PlayerShooting : MonoBehaviour
     public bool isFiringBullet;
     public bool doBulletFX;
     public bool isAiming;
-    public bool isRespawnPlayer;
+    public bool IsPlayerDead;
 
     private Vector3 receivedHitPoint;
     private HitTargets receivedHitTarget;
@@ -81,7 +81,7 @@ public class PlayerShooting : MonoBehaviour
         {
             if (doBulletFX)
             {
-                ObjectPoolManager.Instance.SpawnBullet_Local(networkPlayerMovement.otherPlayerCurrentPosition, receivedHitPoint, receivedHitTarget, receivedOwnerName);
+                ObjectPoolManager.Instance.SpawnBullet_Local(networkPlayerMovement.NetworkPlayerCurrentPosition, receivedHitPoint, receivedHitTarget, receivedOwnerName);
                 doBulletFX = false;
             }
         }
@@ -324,7 +324,7 @@ public class PlayerShooting : MonoBehaviour
     {
         if (photonOwnerID == photonView.ownerId)
         {
-            transform.GetComponent<PlayerShooting>().isRespawnPlayer = true;
+            transform.GetComponent<PlayerShooting>().IsPlayerDead = true;
             EventManager.Instance.UpdateStat(respawnPlayerName, PlayerStatCodes.Deaths, 1);
             if (killedByPlayerName != string.Empty)
             {
@@ -344,7 +344,7 @@ public class PlayerShooting : MonoBehaviour
             yield return new WaitForSeconds(2f);
 
             transform.GetComponent<PlayerShooting>().enabled = true;
-            transform.GetComponent<PlayerShooting>().isRespawnPlayer = false;
+            transform.GetComponent<PlayerShooting>().IsPlayerDead = false;
         }
 
         RespawnPlayerCoroutine = null;

@@ -2,128 +2,113 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public class NetworkPlayerMovement : Photon.MonoBehaviour
 {
+    public SpawnCharacterType SpawnCharacterType;
 
+    //Networked Players Received Variables for Interpolating Movement, as well as Animating
+    private SpawnCharacterType NetworkSpawnCharacterType;
+    private Quaternion NetworkPlayerRotation = Quaternion.identity;
+    private Vector3 NetworkPlayerPosition = Vector3.zero;
+    [HideInInspector] public Vector3 NetworkPlayerVelocity = Vector3.zero;    //PlayerAnimation.cs uses this variable
+    [HideInInspector] public bool NetworkPlayerFloorDetected = false;         //PlayerAnimation.cs uses this variable
+    [HideInInspector] public int NetworkPlayerHealth;                         //PlayerAnimation.cs uses this variable
+    [HideInInspector] public float NetworkPlayerAimAngle;                     //PlayerAnimation.cs uses this variable
+    [HideInInspector] public float NetworkPlayerCurrentAimAngle;              //PlayerAnimation.cs uses this variable
+    [HideInInspector] public MovementType NetworkMovementType;              //PlayerAnimation.cs uses this variable: Player Movement Type, (More to come)
+    private Vector3 NetworkPlayerStartPosition = Vector3.zero;          //Determining Move Interpolation Progress
+    [HideInInspector] public Vector3 NetworkPlayerCurrentPosition;      //Determining Spawn Bullet Position (For any Networked Player)
+
+
+
+    //Variables for Calculating Package Delay
+    private float lastPackageReceivedTimeStamp = 0f;
+    private float syncTime = 0f;
+    private float syncDelay = 0f;
+
+    //Variables for Interpolating Networked Player Movements
+    private Vector3 HeightAdjustmentVector;
+    private float heightLerp;
+    private float currentDistance = 0f;
+    private float fullDistance = 0f;
+    private float progress = 0f;
+    private float lerpValue;
+    private bool gotFirstUpdate = false;
+
+    //Variables for Player to adjust network synchronization values
+    private float velocityPredictionValue;  //Obtained values from NetworkSettingsDisplay.cs
+    private float clientPredictionValue;    //Obtained values from NetworkSettingsDisplay.cs
+    private float syncPrecictionValue;      //Obtained values from NetworkSettingsDisplay.cs
+    private float syncDistanceValue;        //Obtained values from NetworkSettingsDisplay.cs
+    private float syncYAxisValue;           //Obtained values from NetworkSettingsDisplay.cs
+    private float finalSyncDistance;         //Calculated values
+    private float finalSyncMultiplier;       //Calculated values
+    private float exponentialMultiplier;    //Calculated values
+
+    //Player Components: Required Components for Multiplayer Character object
     private PhotonView PhotonView;
-    private Vector3 TargetPosition;
-    private Quaternion TargetRotation;
-    public float Health;
+    private Transform Transform;
+    //Player Components: Specific Components for Multiplayer Character object
+    [SerializeField]private PlayerMovement PlayerMovement;
+    private PlayerShooting PlayerShooting;
+    private PlayerAnimation PlayerAnimation;
+    private MouseLook PlayerMouseLook;
 
 
-    public MovementType networkedMovementType;
-
-
-    Transform tr;
-    float currentDistance = 0f;
-    float fullDistance = 0f;
-    float progress = 0f;
-    bool receivedNetworkedGrounded = false;
-
-    Vector3 otherPlayerStartPosition = Vector3.zero;
-
-    //RECEIVED VARIABLES FROM OTHER PLAYERS
-    public Quaternion otherPlayerRotation = Quaternion.identity;
-    public Vector3 otherPlayerPosition = Vector3.zero;
-    public Vector3 otherPlayerVelocity = Vector3.zero;
-    public bool otherPlayerFloorDetected = false;
-    public bool otherPlayerisRespawnPlayer = false;
-    public int otherPlayerHealth;
-    public float otherPlayerAimAngle;
-    public float otherPlayerCurrentAimAngle;
-
-    [HideInInspector] public Vector3 otherPlayerCurrentPosition;
-
-    //STATE VARIABLES FOR PLAYERANIMATOR PARAMETERS
-    public int receivedNetworked_Assault_StateID;
-    public int currentNetworked_Assault_StateID;
-    public int receivedNetworked_LegRunningStateID;
-    public int receivedNetworked_LegStateID;
-    public bool receivedNetworked_JumpState;
-    public bool receivedNetworked_DeathState;
-
-    float lerpTime = 1f;
-    float currLerpTime = 0f;
-    float lastPackageReceivedTimeStamp = 0f;
-    float syncTime = 0f;
-    float syncDelay = 0f;
-    public float velocityPredictionValue = 0f;
-    public float clientPredictionValue = 15f;
-    public float syncPrecictionValue = 0f;
-    public float syncDistanceValue = 100f;
-    public float syncYAxisValue = 0f;
-
-    float lerpValue;
-    float heightLerp;
-    Vector3 HeightAdjustmentVector;
-
-    public float finalSyncDistance;
-    public float finalSyncMultiplier;
-    private float exponentialMultiplier;
-
-
-    bool gotFirstUpdate = false;
-
-    float pingInSeconds = 0f;
-    float timeSinceLastUpdate = 0f;
-    float totalTimePassedSinceLastUpdate = 0f;
-    bool isMoving = false;
-
-    public PlayerMovement pMovement;
-    public PlayerShooting playerShooting;
-    public PlayerAnimation playerAnimation;
-    public MouseLook mLook;
-
-    //ANIMATOR PARAMETERS (FOR HASHING)
-    int AssaultRifleAnimationState;
-    int PlayerLegRunningState;
-    int PlayerLegState;
-    int JumpBool;
-    int DeathBool;
-    int AssaultRifle_State;
-    int AssaultRifleAnimationJumpBool;
-    int AssaultRifle_Angle;
-
-    GameObject[] portalCameras;
-    GameObject[] portalTeleporters;
-    public Transform playerCameraTransform;
+    //Assign our 'PlayerCamerTransform' to Portal Cameras' variable: 'PlayerCamera'
+    GameObject[] PortalCameras;
+    GameObject[] PortalTeleporters;
+    public Transform PlayerCameraTransform;
 
     private void Awake()
     {
         PhotonView = GetComponent<PhotonView>();
-        tr = GetComponent<Transform>();
+        Transform = GetComponent<Transform>();
 
-        if (pMovement.movementType.Equals(MovementType.Player))
+        if (SpawnCharacterType.Equals(SpawnCharacterType.Player))
         {
-            AssaultRifleAnimationState = Animator.StringToHash("AssaultRifleAnimationState");
-            PlayerLegRunningState = Animator.StringToHash("PlayerLegRunningState");
-            PlayerLegState = Animator.StringToHash("PlayerLegState");
-            JumpBool = Animator.StringToHash("JumpBool");
-            DeathBool = Animator.StringToHash("DeathBool");
-            AssaultRifle_State = Animator.StringToHash("AssaultRifle_State");
-            AssaultRifleAnimationJumpBool = Animator.StringToHash("AssaultRifleAnimationJumpBool");
-            AssaultRifle_Angle = Animator.StringToHash("AssaultRifle_Angle");
+            Awake_Player();
+        }
+        else
+        {
+            Awake_Car();
         }
 
         if (PhotonView.isMine)
         {
-            portalCameras = GameObject.FindGameObjectsWithTag("PortalCamera");
-            foreach (GameObject portalCamera in portalCameras)
+            PortalCameras = GameObject.FindGameObjectsWithTag("PortalCamera");
+            foreach (GameObject portalCamera in PortalCameras)
             {
-                portalCamera.GetComponent<PortalCamera>().playerCamera = playerCameraTransform;
+                portalCamera.GetComponent<PortalCamera>().playerCamera = PlayerCameraTransform;
             }
 
-            portalTeleporters = GameObject.FindGameObjectsWithTag("PortalCollider");
-            foreach (GameObject portalTeleporter in portalTeleporters)
+            PortalTeleporters = GameObject.FindGameObjectsWithTag("PortalCollider");
+            foreach (GameObject portalTeleporter in PortalTeleporters)
             {
-                portalTeleporter.GetComponent<PortalTeleporter>().player = tr;
+                portalTeleporter.GetComponent<PortalTeleporter>().player = Transform;
             }
         }
 
         NetworkSettingsDisplay.Instance.InitNetworkSettings();
     }
 
-    bool playerInitNetworkSettings;
+    public void Awake_Player()
+    {
+        PlayerMovement = GetComponent<PlayerMovement>();
+        PlayerShooting = GetComponent<PlayerShooting>();
+        PlayerAnimation = GetComponent<PlayerAnimation>();
+        PlayerMouseLook = GetComponent<PlayerObjectComponents>().PlayerCamera.GetComponent<MouseLook>();
+
+    }
+
+    private void Awake_Car()
+    {
+
+    }
+
+
+    //Here temporarily for Health GUI purposes
     private int currentHealth;
     void Update()
     {
@@ -167,40 +152,48 @@ public class NetworkPlayerMovement : Photon.MonoBehaviour
         if (stream.isWriting)
         {
             //We are sending data
-            stream.SendNext(pMovement.movementType);
+            stream.SendNext(SpawnCharacterType);
+            stream.SendNext(PlayerMovement.movementType);
 
-            stream.SendNext(tr.position);
-            stream.SendNext(tr.rotation);
-            stream.SendNext(pMovement.playerVelocity);
-            stream.SendNext(pMovement.floorDetected);
+            stream.SendNext(Transform.position);
+            stream.SendNext(Transform.rotation);
+            stream.SendNext(PlayerMovement.playerMovementSettings.V_PlayerVelocity);
+            stream.SendNext(PlayerMovement.playerMovementSettings.V_IsFloorDetected);
             stream.SendNext(EventManager.Instance.GetScore(photonView.owner.NickName, PlayerStatCodes.Health));
 
-            stream.SendNext(mLook.GetCameraRotationY());
-
+            if (SpawnCharacterType.Equals(SpawnCharacterType.Player))
+                stream.SendNext(PlayerMouseLook.GetCameraRotationY());
         }
         else
         {
-            //We are reading incoming data
-            networkedMovementType = (MovementType)stream.ReceiveNext();
-            otherPlayerPosition = (Vector3)stream.ReceiveNext();
-            otherPlayerRotation = (Quaternion)stream.ReceiveNext();
-            otherPlayerVelocity = (Vector3)stream.ReceiveNext();
-            otherPlayerFloorDetected = (bool)stream.ReceiveNext();
-            otherPlayerHealth = (int)stream.ReceiveNext();
+            //To capture the 'start' position
+            NetworkPlayerStartPosition = NetworkPlayerPosition;
 
-            otherPlayerAimAngle = (float)stream.ReceiveNext();
+            //We are reading incoming data
+            NetworkSpawnCharacterType = (SpawnCharacterType)stream.ReceiveNext();
+            NetworkMovementType = (MovementType)stream.ReceiveNext();
+            NetworkPlayerPosition = (Vector3)stream.ReceiveNext();
+            NetworkPlayerRotation = (Quaternion)stream.ReceiveNext();
+            NetworkPlayerVelocity = (Vector3)stream.ReceiveNext();
+            NetworkPlayerFloorDetected = (bool)stream.ReceiveNext();
+            NetworkPlayerHealth = (int)stream.ReceiveNext();
+
+            if (NetworkSpawnCharacterType.Equals(SpawnCharacterType.Player))
+                NetworkPlayerAimAngle = (float)stream.ReceiveNext();
+
+
             //When we receive an update here, our syncTime gets re-initialized to 0
             syncTime = 0f;
             syncDelay = Time.time - lastPackageReceivedTimeStamp;
             lastPackageReceivedTimeStamp = Time.time;
 
             //Velocity Prediction
-            otherPlayerPosition = otherPlayerPosition + (otherPlayerVelocity * syncDelay / 1000) * velocityPredictionValue;
+            NetworkPlayerPosition = NetworkPlayerPosition + (NetworkPlayerVelocity * syncDelay / 1000) * velocityPredictionValue;
 
             if (gotFirstUpdate == false)
             {
-                tr.position = otherPlayerPosition;
-                tr.rotation = otherPlayerRotation;
+                Transform.position = NetworkPlayerPosition;
+                Transform.rotation = NetworkPlayerRotation;
                 gotFirstUpdate = true;
             }
 
@@ -211,15 +204,8 @@ public class NetworkPlayerMovement : Photon.MonoBehaviour
 
     private void SmoothMoove()
     {
-        //transform.position = Vector3.Lerp(transform.position, TargetPosition, 0.25f);
-        //transform.rotation = Quaternion.RotateTowards(transform.rotation, TargetRotation, 500 * Time.deltaTime);
-
-        pingInSeconds = (float)PhotonNetwork.GetPing() * 0.001f;
-        timeSinceLastUpdate = (float)(PhotonNetwork.time - lastPackageReceivedTimeStamp);
-        totalTimePassedSinceLastUpdate = pingInSeconds + timeSinceLastUpdate;
-
-        currentDistance = Vector3.Distance(tr.position, otherPlayerPosition);
-        fullDistance = Vector3.Distance(otherPlayerStartPosition, otherPlayerPosition);
+        currentDistance = Vector3.Distance(Transform.position, NetworkPlayerPosition);
+        fullDistance = Vector3.Distance(NetworkPlayerStartPosition, NetworkPlayerPosition);
         if (fullDistance != 0)
         {
             progress = currentDistance / fullDistance;
@@ -241,55 +227,55 @@ public class NetworkPlayerMovement : Photon.MonoBehaviour
         //lerpValue = Mathf.Pow(syncTime / syncDelay, 5);
         if (currentDistance > syncDistanceValue)
         {
-            tr.position = otherPlayerPosition;
-            tr.rotation = otherPlayerRotation;
+            Transform.position = NetworkPlayerPosition;
+            Transform.rotation = NetworkPlayerRotation;
             //Or a more aggressive smoothing move
 
         }
         else
         {
-            if ((int)otherPlayerVelocity.magnitude == 0)
+            if ((int)NetworkPlayerVelocity.magnitude == 0)
             {
                 if (syncPrecictionValue != 0)
                 {
 
-                    tr.rotation = Quaternion.Lerp(tr.rotation, otherPlayerRotation, syncTime / syncDelay);
-                    tr.position = Vector3.Lerp(tr.position, otherPlayerPosition, lerpValue);
+                    Transform.rotation = Quaternion.Lerp(Transform.rotation, NetworkPlayerRotation, syncTime / syncDelay);
+                    Transform.position = Vector3.Lerp(Transform.position, NetworkPlayerPosition, lerpValue);
 
-                    exponentialMultiplier = Mathf.Clamp(Vector3.Distance(tr.position, otherPlayerPosition), 0.0001f, 1);
+                    exponentialMultiplier = Mathf.Clamp(Vector3.Distance(Transform.position, NetworkPlayerPosition), 0.0001f, 1);
                     if (exponentialMultiplier < finalSyncDistance)
                     {
-                        tr.position = Vector3.LerpUnclamped(tr.position, otherPlayerPosition, progress * finalSyncMultiplier / exponentialMultiplier);
+                        Transform.position = Vector3.LerpUnclamped(Transform.position, NetworkPlayerPosition, progress * finalSyncMultiplier / exponentialMultiplier);
                     }
                     if (syncYAxisValue != 0)
                     {
-                        heightLerp = tr.position.y;
-                        heightLerp = Mathf.Lerp(tr.position.y, otherPlayerPosition.y, syncYAxisValue);
-                        HeightAdjustmentVector = new Vector3(tr.position.x, heightLerp, tr.position.z);
-                        tr.position = HeightAdjustmentVector;
+                        heightLerp = Transform.position.y;
+                        heightLerp = Mathf.Lerp(Transform.position.y, NetworkPlayerPosition.y, syncYAxisValue);
+                        HeightAdjustmentVector = new Vector3(Transform.position.x, heightLerp, Transform.position.z);
+                        Transform.position = HeightAdjustmentVector;
                     }
                 }
                 else
                 {
-                    tr.position = otherPlayerPosition;
-                    tr.rotation = otherPlayerRotation;
+                    Transform.position = NetworkPlayerPosition;
+                    Transform.rotation = NetworkPlayerRotation;
                 }
             }
             else
             {
                 if (syncYAxisValue != 0)
                 {
-                    heightLerp = tr.position.y;
-                    heightLerp = Mathf.Lerp(tr.position.y, otherPlayerPosition.y, syncYAxisValue);
-                    HeightAdjustmentVector = new Vector3(tr.position.x, heightLerp, tr.position.z);
-                    tr.position = HeightAdjustmentVector;
+                    heightLerp = Transform.position.y;
+                    heightLerp = Mathf.Lerp(Transform.position.y, NetworkPlayerPosition.y, syncYAxisValue);
+                    HeightAdjustmentVector = new Vector3(Transform.position.x, heightLerp, Transform.position.z);
+                    Transform.position = HeightAdjustmentVector;
                 }
-                tr.rotation = Quaternion.Lerp(tr.rotation, otherPlayerRotation, syncTime / syncDelay);
-                tr.position = Vector3.Lerp(tr.position, otherPlayerPosition, progress);
+                Transform.rotation = Quaternion.Lerp(Transform.rotation, NetworkPlayerRotation, syncTime / syncDelay);
+                Transform.position = Vector3.Lerp(Transform.position, NetworkPlayerPosition, progress);
             }
         }
 
-        otherPlayerCurrentPosition = tr.position;
+        NetworkPlayerCurrentPosition = Transform.position;
 
     }
 

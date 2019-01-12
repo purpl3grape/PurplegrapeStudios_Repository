@@ -9,214 +9,148 @@ public enum MovementType
     BumperCar,
 }
 
-public class PlayerMovement : MonoBehaviour {
-
-    public GameObject CameraConainter;
-
+public class PlayerMovement : MonoBehaviour
+{
     public MovementType movementType;
-    PlayerObjectComponents playerObjectComponents;
-    PlayerAnimation playerAnimation;
-    public GameObject LocalArms;
-    public GameObject PlayerObject;
-    public GameObject BumperCarObject;
-    public GameObject CameraObject;
 
+    /// <summary>
+    /// Basic Components (Player and Car)
+    /// </summary>
+    private Transform Transform;
+    private Transform PlayerCameraTransform;
+    private Rigidbody RigidBody;
     private PhotonView PhotonView;
-    private Vector3 TargetPosition;
-    private Quaternion TargetRotation;
-    public float Health;
+    /// <summary>
+    /// Player Specific Components
+    /// </summary>
+    private PlayerObjectComponents playerObjectComponents;
+    private PlayerAnimation playerAnimation;
 
-    //
-    Transform tr;
-    float currentDistance = 0f;
-    float fullDistance = 0f;
-    float progress = 0f;
-    Vector3 startPosition = Vector3.zero;
-    Vector3 networkedPlayerPosition = Vector3.zero;
-    Quaternion networkedPlayerRotation = Quaternion.identity;
-
-    float lerpTime = 1f;
-    float currLerpTime = 0f;
-    Vector3 networkedPlayerVelocity = Vector3.zero;
-    float lastPackageReceivedTimeStamp = 0f;
-    float syncTime = 0f;
-    float syncDelay = 0f;
-    float velocityPredictionValue = 0f;
-    float clientPredictionValue = 0f;
-    float syncDistanceValue = 0f;
-    bool gotFirstUpdate = false;
-
-    float pingInSeconds = 0f;
-    float timeSinceLastUpdate = 0f;
-    float totalTimePassedSinceLastUpdate = 0f;
-    bool isMoving = false;
-
-    PlayerMovement pMovement;
-    //
-    string speedRamp = "SpeedRamp";
-    string bouncePad = "BouncePad";
-
-    /* Player view stuff */
-    Transform playerView;  // Must be a camera
-
-    public float playerViewYOffset = 0.6f; // The height at which the camera is bound to
-    public float xMouseSensitivity = 30.0f;
-    public float yMouseSensitivity = 30.0f;
-
-    /* Frame occuring factors */
-    public float gravity = 20.0f;
-    public float friction = 6;                // Ground friction
-
-    /* Player stuff */
-    public float playerHeight = 0f;
-
-    /* Movement stuff */
-    public float moveSpeed = 7.0f;  // Ground move speed
-    public float runAcceleration = 14;   // Ground accel
-    public float runDeacceleration = 10;   // Deacceleration that occurs when running on the ground
-    public float airAcceleration = 2.0f;  // Air accel
-    public float airDeacceleration = 2.0f;    // Deacceleration experienced when opposite strafing
-    public float airControl = 0.3f;  // How precise air control is
-    public float sideStrafeAcceleration = 50;   // How fast acceleration occurs to get up to sideStrafeSpeed when side strafing
-    public float sideStrafeSpeed = 1;    // What the max speed to generate when side strafing
-    public float jumpSpeed = 8.0f;  // The speed at which the character's up axis gains when hitting jump
-    public float moveScale = 1.0f;
-    public float walkSoundRate = 0.15f;
-    public float maxSpeed = 150f;
-    public int jumpAttempts = 2;
-    float mouseSensitivityValue = 100f;
-
-    public bool hasJumped = false;
-    public bool isStealthWalk = false;
-
-    public float doubleJumpDeltaTime = 0.25f;
-    public bool hasDoubleJumped = false;
-    /* Sound stuff */
-
-    /* FPS Stuff */
-    public float fpsDisplayRate = 4.0f;  // 4 updates per sec.
-
-    /* Prefabs */
-
+    /// <summary>
+    /// FPS Calculation (For Checking FPS Performance)
+    /// </summary>
+    private float fpsDisplayRate = 4.0f;  // 4 updates per sec.
     private float frameCount = 0;
     private float dt = 0.0f;
-    public float fps = 0.0f;
+    private float fps = 0.0f;
 
-    private Rigidbody controller;
+    /// <summary>
+    /// All Strings
+    /// </summary>
+    private string S_BouncePad = "BouncePad";
+    private string S_Level = "Level";
+    private string S_MetersPerSecond = " m/s";
+    private string S_MouseX = "Mouse X";
+    private string S_SpeedRamp = "SpeedRamp";
 
-    // Camera rotationals
-    private float rotX = 0.0f;
-    private float rotY = 0.0f;
-
-    private Vector3 moveDirection = Vector3.zero;
-    private Vector3 moveDirectionNorm = Vector3.zero;
-    private Vector3 _playerVelocity = Vector3.zero;
-    private float playerTopVelocity = 0.0f;
-
-    // If true then the player is fully on the ground
-    private bool grounded = false;
-    public bool IsGrounded
+    /// <summary>
+    /// Player Parameters and Values
+    /// </summary>
+    [System.Serializable]
+    public class PlayerMovementSettings
     {
-        get { return grounded; }
+        //Parameters Movement
+        public float P_AirAcceleration = 2.0f;                                  // Air accel
+        public float P_AirControl = 0.3f;                                       // How precise air control is
+        public float P_AirDeacceleration = 2.0f;                                // Deacceleration experienced when opposite strafing
+        public float P_DoubleJumpDeltaTime = 0.25f;
+        public float P_Friction = 6;                                            // Ground friction
+        public float P_Gravity = 20.0f;
+        public int P_JumpAttempts = 2;
+        public float P_JumpSpeed = 8.0f;                                        // The speed at which the character's up axis gains when hitting jump
+        public float P_MaxSpeed = 150f;
+        public float P_MoveScale = 1.0f;
+        public float P_MoveSpeed = 7.0f;                                        // Ground move speed
+        public float P_RunAcceleration = 14;                                    // Ground accel
+        public float P_RunDeacceleration = 10;                                  // Deacceleration that occurs when running on the ground
+        public float P_SideStrafeAcceleration = 50;                             // How fast acceleration occurs to get up to sideStrafeSpeed when side strafing
+        public float P_SideStrafeSpeed = 1;                                     // What the max speed to generate when side strafing
+        public float P_WalkSoundRate = 0.15f;
+        //Values: Movement General
+        [HideInInspector] public bool V_Airjump = false;
+        [HideInInspector] public Vector3 V_BoostVelocity;
+        [HideInInspector] public bool V_IsBoosted;                              // For Jumppads / Bounce Pads
+        [HideInInspector] public bool V_IsBouncePadWallDetected;
+        [HideInInspector] public bool V_IsDisplayDustFX;
+        [HideInInspector] public bool V_IsDoubleJumping = false;
+        [HideInInspector] public bool V_IsFloorDetected;                        // True Measure of 'Grounded', since IsPlayerGrounded may be false upon landing on Jump Pad / Bounce Pad / Speed Ramp
+        [HideInInspector] public bool V_IsGrounded = false;
+        [HideInInspector] public bool V_IsHitCeiling = false;
+        [HideInInspector] public bool V_IsJumping = false;
+        [HideInInspector] public bool V_IsLanded = true;
+        [HideInInspector] public bool V_IsQuietWalk = false;
+        [HideInInspector] public bool V_IsSliding;                              // For Speed Ramps
+        [HideInInspector] public bool V_KnockBackOverride = false;
+        [HideInInspector] public float V_MouseSensitivity = 100f;
+        [HideInInspector] public Vector3 V_MoveDirectionNorm = Vector3.zero;
+        [HideInInspector] public float V_RotationY = 0.0f;
+        [HideInInspector] public float V_TopVelocity = 0.0f;
+        [HideInInspector] public float V_PlayerFriction = 0.0f;                 // Used to display real time friction values
+        [HideInInspector] public Vector3 V_PlayerVelocity = Vector3.zero;
+        [HideInInspector] public bool V_WishJump = false;
+        //Values: Raycasting
+        [HideInInspector] public int V_RaycastFloorType = -1;
+        [HideInInspector] public Ray[] V_Rays_Ground = new Ray[5];
+        [HideInInspector] public Ray V_Ray_Ceiling;
+        [HideInInspector] public Ray V_Ray_Velocity;
+        [HideInInspector] public RaycastHit[] V_CeilingHits;
+        [HideInInspector] public RaycastHit[] V_WallHits;
+        [HideInInspector] public RaycastHit[] V_GroundHits;
+        [HideInInspector] public RaycastHit V_GroundHit;
+        [HideInInspector] public Vector3 V_SpeedReduction;
+        [HideInInspector] public Transform V_GroundHitTransform;
+        [HideInInspector] public float V_TempJumpSpeed;
+        [HideInInspector] public float V_TempRampJumpSpeed;
+        [HideInInspector] public string v_GroundHitTransformName;
     }
-    private bool landed = true;
-    public bool IsLanded
-    {
-        get { return landed; }
-    }
-
-    //If in Air, allow Air jump once. Reset when grounded.
-    private bool airjump = false;
-
-    // Q3: players can queue the next jump just before he hits the ground
-    private bool wishJump = false;
-
-    // Used to display real time friction values
-    private float playerFriction = 0.0f;
-
-    // Contains the command the user wishes upon the character
-    class Cmd
+    public PlayerMovementSettings playerMovementSettings;
+   
+    /// <summary>
+    /// Contains the command the user wishes upon the character
+    /// </summary>
+    private class Cmd
     {
         public float forwardmove;
         public float rightmove;
-        public float upmove;
-        public float rotatemove;
     }
     private Cmd cmd; // Player commands, stores wish commands that the player asks for (Forward, back, jump, etc)
 
-    /* Player statuses */
+    public LayerMask RayCastLayersToHit;
 
-    private Vector3 playerSpawnPos;
-    private Quaternion playerSpawnRot;
+    //SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS
+    //SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS
+    //SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS
 
-    public Vector3 playerVelocity
-    {
-        get
-        {
-            return _playerVelocity;
-        }
-        set
-        {
-            _playerVelocity = value;
-        }
-    }
-
-
-    Transform myCamTr;
-    PhotonView pv;
-
+    /// <summary>
+    /// Initialization
+    /// </summary>
     private void Start()
     {
-        pv = GetComponent<PhotonView>();
+        PhotonView = GetComponent<PhotonView>();
+        RigidBody = GetComponent<Rigidbody>();
+        Transform = GetComponent<Transform>();
+        PlayerCameraTransform = GetComponentInChildren<Camera>().transform;
+        //Player Specifics
         playerObjectComponents = GetComponent<PlayerObjectComponents>();
         playerAnimation = GetComponent<PlayerAnimation>();
-        if (!pv.isMine) return;
 
-        controller = GetComponent<Rigidbody>();
-        tr = GetComponent<Transform>();
-        myCamTr = GetComponentInChildren<Camera>().transform;
-        cmd = new Cmd();
+        if (!PhotonView.isMine) return;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
-        groundHits = new RaycastHit[255];
-        ceilingHits = new RaycastHit[255];
-        collisionHits = new RaycastHit[25];
+
+
+        //Player Specifics
+        cmd = new Cmd();
+        playerMovementSettings.V_GroundHits = new RaycastHit[255];
+        playerMovementSettings.V_CeilingHits = new RaycastHit[255];
+        playerMovementSettings.V_WallHits = new RaycastHit[255];
     }
 
-
-    string AimAngle = "AimAngle";
-    void adjustVerticalAimAngle()
+    private void Update()
     {
-        float myAimAngle = 0.0f;
-        myAimAngle = myCamTr.rotation.eulerAngles.x <= 90 ? -1 * myCamTr.rotation.eulerAngles.x : 360 - myCamTr.rotation.eulerAngles.x;
-
-        //Set parameter on animator component during runtime
-        if (myAimAngle >= 90f)
-            myAimAngle = 89f;
-        else if (myAimAngle <= -90f)
-            myAimAngle = -89f;
-    }
-
-
-    private List<float> rotArrayY = new List<float>();
-    float rotAverageX = 0F;
-    float playerSmoothingFrames = 0f;
-    float bumperCarRotationAcceleration = 0f;
-
-    string inputAxis_Mouse_X = "Mouse X";
-    string inputAxis_Joy1_Axis_1 = "Joy1 Axis 1";
-    string inputAxis_Joy1_Axis_2 = "Joy1 Axis 2";
-
-
-    string FPS = "FPS\t";
-    string MS = "PING\t";
-    string VEL = "SPEED\t";
-    string MPS = " m/s";
-
-    private void Update ()
-    {
-        if (pv.isMine)
+        //LOCAL PLAYER SECTION
+        if (PhotonView.isMine)
         {
             if (InputManager.Instance.GetKeyDown(InputCode.Settings))
             {
@@ -224,26 +158,11 @@ public class PlayerMovement : MonoBehaviour {
                 {
                     Cursor.visible = false;
                     Cursor.lockState = CursorLockMode.Locked;
-                    //inputManager.KeybindDialogBox.hasAppliedSettings = true;
                 }
                 else if (Cursor.lockState == CursorLockMode.Locked)
                 {
                     Cursor.visible = true;
                     Cursor.lockState = CursorLockMode.None;
-                    //inputManager.KeybindDialogBox.hasAppliedSettings = false;
-                }
-            }
-
-            if (InputManager.Instance.GetKeyDown(InputCode.ToggleBumperCar))
-            {
-                if (movementType.Equals(MovementType.Player))
-                {
-                    //playerAnimation.SwitchCameraPerspective();
-                    PlayerEvents_ChangeMovementType(pv.owner.ID, MovementType.BumperCar);
-                }else
-                {
-                    //playerAnimation.SwitchCameraPerspective();
-                    PlayerEvents_ChangeMovementType(pv.owner.ID, MovementType.Player);
                 }
             }
 
@@ -257,242 +176,180 @@ public class PlayerMovement : MonoBehaviour {
 
                 PlayerScreenDisplay.Instance.Text_CurrentFrameRate.text = fps.ToString();
                 PlayerScreenDisplay.Instance.Text_Ping.text = PhotonNetwork.GetPing().ToString();
-                PlayerScreenDisplay.Instance.Text_PlayerVelocity.text = ((int)_playerVelocity.magnitude).ToString() + MPS;
+                PlayerScreenDisplay.Instance.Text_PlayerVelocity.text = ((int)playerMovementSettings.V_PlayerVelocity.magnitude).ToString() + S_MetersPerSecond;
             }
 
             if (CameraManager.Instance.spectateMode == CameraManager.SpectateMode.Free)
                 return;
 
-            /* Using the Mouse Senitivity Inputs DIRECTLY from SettingsManager */
-            //Zoom_Vs_NoZoom
-
-            if (EventManager.Instance.GetScore(pv.owner.NickName, PlayerStatCodes.Health) > 0)
-            {
-
-                if (movementType.Equals(MovementType.Player))
-                {
-                    rotY += Input.GetAxis(inputAxis_Mouse_X) * (mouseSensitivityValue / 3f) * 0.1f * Time.timeScale;
-                }
-                else
-                {
-                    if (cmd.rotatemove != 0)
-                    {
-                        rotY += (mouseSensitivityValue / 3f) * bumperCarRotationAcceleration * Mathf.Min(_playerVelocity.magnitude, 40) * Time.timeScale;
-                    }
-
-                }
-            }
-
-            //Smoothing over X number of Frames
-            rotArrayY.Add(rotY);
-            if (rotArrayY.Count >= 5)
-            {
-                rotArrayY.RemoveAt(0);
-                //print(tr.rotation);
-            }
-            for (int i = 0; i < rotArrayY.Count; i++)
-            {
-                rotAverageX += rotArrayY[i];
-            }
-            rotAverageX /= rotArrayY.Count;
-            //tr.rotation = Quaternion.Euler(0, rotAverageX, 0); // Rotates the collider
-        
-            tr.rotation = Quaternion.Euler(0, rotY, 0); // Rotates the collider
-
-
-
-            detectCollision(2.5f);
-            GroundCheck(2.1f);
-            CeilingCheck();
-            QueueJump();
-
-
-            if (!playerObjectComponents.playerShooting.isRespawnPlayer)
-            {
-
-
-                GetComponent<CapsuleCollider>().radius = .5f;
-                GetComponent<CapsuleCollider>().height = 2f;
-
-                DoDustFX(_playerVelocity, grounded);
-
-                if (grounded)
-                {
-                    if (landed == false)
-                    {
-                        //					pv.RPC ("LandFX", PhotonTargets.All);
-                        landed = true;
-                    }
-                    hasJumped = false;
-                    GroundMove();
-                }
-                else if (!grounded)
-                {
-                    AirMove();
-                }
-
-                //FUNCTIONS THAT DO NOT DEPEND ON:
-                //-CHAT PANEL
-                //-SETTINGS PANEL
-
-                speedLimiter();
-            }
-            else
-            {
-                //DEAD SO JUST DROP WITH GRAVITY
-                GetComponent<CapsuleCollider>().height = .25f;
-                GetComponent<CapsuleCollider>().radius = .25f;
-                _playerVelocity.y -= gravity * Time.deltaTime;
-                detectCollision(.5f);
-                CeilingCheck();
-                GroundCheck(1f);
-                if (grounded)
-                {
-                    ApplyFriction(.5f);
-                }
-            }
-
+            //Player Behavior Update
+            Update_PlayerInputBehavior();
+            
+            //Car Behavior Update
+            //Update_CarInputBehavior();
         }
         else
         {
-            if (playerObjectComponents.networkPlayerMovement.otherPlayerHealth > 0)
+            //NETWORKED PLAYER SECTION
+            if (playerObjectComponents.networkPlayerMovement.NetworkPlayerHealth > 0)
             {
-                DoDustFX(playerObjectComponents.networkPlayerMovement.otherPlayerVelocity, playerObjectComponents.networkPlayerMovement.otherPlayerFloorDetected);
+                DustFX_Behavior(playerObjectComponents.networkPlayerMovement.NetworkPlayerVelocity, playerObjectComponents.networkPlayerMovement.NetworkPlayerFloorDetected);
             }
         }
+    }
 
+    /// <summary>
+    /// Physical Movement of Rigidbody performed in FixedUpdate Loop
+    /// </summary>
+    private void FixedUpdate()
+    {
+        if (!PhotonView.isMine) { return; }
+        if (RigidBody.velocity.magnitude > 0) { RigidBody.velocity = Vector3.zero; }
+
+        /* MOVEMENT PLAYER: here's the important part*/
+        RigidBody.MovePosition(RigidBody.position + playerMovementSettings.V_PlayerVelocity * Time.fixedDeltaTime);
+
+        /* MOVEMENT CAR: here's the important part*/
 
     }
 
-    void FixedUpdate()
+    /// <summary>
+    /// Called in Update(). This is the General Player Behavior Loop, for updating values in inputs
+    /// </summary>
+    private void Update_PlayerInputBehavior()
     {
+        //TODO: Zoom_Vs_NoZoom
+        Player_Rotate();                                            // 1) Rotate Player along Y Axis
 
-        if (!pv.isMine)
-            return;
-
-        //if (Cursor.visible) return;
-
-        if (controller.velocity.magnitude > 0)
+        //IF PLAYER IS ALIVE
+        if (!playerObjectComponents.playerShooting.IsPlayerDead)
         {
-            controller.velocity = Vector3.zero;
+            //Player Alive Movement Behavior
+            Player_DetectCollision(2.5f);                           // 2) Detect Collision Against Wall
+            Player_GroundCheck(2.1f);                               // 3) Detect Collision Against Ground
+            Player_CeilingCheck();                                  // 4) Detect Collision Against Ceiling
+            Player_QueueJump();                                     // 5) Check Jump Input
+
+            GetComponent<CapsuleCollider>().radius = .5f;
+            GetComponent<CapsuleCollider>().height = 2f;
+
+            DustFX_Behavior(playerMovementSettings.V_PlayerVelocity, playerMovementSettings.V_IsGrounded);
+
+            if (playerMovementSettings.V_IsGrounded)
+            {
+                if (playerMovementSettings.V_IsLanded == false)
+                    playerMovementSettings.V_IsLanded = true;
+                playerMovementSettings.V_IsJumping = false;
+                Player_GroundMove();
+            }
+            else if (!playerMovementSettings.V_IsGrounded)
+            {
+                Player_AirMove();
+            }
+
+            Player_LimitSpeed();
+        }
+        else
+        {
+            //IF PLAYER IS DEAD
+            GetComponent<CapsuleCollider>().height = .25f;
+            GetComponent<CapsuleCollider>().radius = .25f;
+            if (playerMovementSettings.V_IsGrounded) playerMovementSettings.V_PlayerVelocity.y -= playerMovementSettings.P_Gravity * Time.deltaTime;
+            Player_DetectCollision(.5f);                            // 2) Detect Collision Against Wall
+            Player_GroundCheck(1f);                                 // 3) Detect Collision Against Ground
+            Player_CeilingCheck();                                  // 4) Detect Collision Against Ceiling
+            if (playerMovementSettings.V_IsGrounded)
+            {
+                Player_ApplyFriction(.5f);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Detects Player Ground Collision, and initializes multiple rays
+    /// </summary>
+    /// <param name="distance"></param>
+    private void Player_GroundCheck(float distance)
+    {
+        if (playerMovementSettings.V_KnockBackOverride)
+        {
+            playerMovementSettings.V_IsGrounded = false;
+            return;
         }
 
-        adjustVerticalAimAngle();
-
-        /* Movement, here's the important part */
-        controller.MovePosition(controller.position + _playerVelocity * Time.fixedDeltaTime);
-
-        /* Calculate top velocity */
-        Vector3 udp = _playerVelocity;
-        udp.y = 0.0f;
-        if (_playerVelocity.magnitude > playerTopVelocity)
-            playerTopVelocity = _playerVelocity.magnitude;
-
-    }
-
-
-    public bool knockBackOverride = false;
-
-    [PunRPC]
-    public void SetKnockBackOverride(bool val, Vector3 newVelocity)
-    {
-        knockBackOverride = val;
-        _playerVelocity = newVelocity;
-    }
-
-
-    Vector3 tempVelocity;
-    Vector3 boostVelocity;
-    public bool isBoosted;
-    public bool isSliding;
-    public bool floorDetected;
-    int scannedFloorType = -1;
-    Ray[] rays = new Ray[5];
-    Ray ray0, ray1, ray2, ray3, ray4;
-    RaycastHit groundHit;
-    RaycastHit[] groundHits;
-    Transform groundHitTransform;
-    float tempJumpSpeed;
-    float tempRampJumpSpeed;
-    string groundHitTransformName;
-    public LayerMask RayCastLayersToHit;
-    int nonItemLayerMask = ~(1 << 9);  //Do not hit invisible layer
-    void GroundCheck(float distance)
-    {
-
-        if (knockBackOverride)
-        {
-            grounded = false;
-            return;
-        }
-
-        tempJumpSpeed = jumpSpeed;
-        tempRampJumpSpeed = jumpSpeed * 10;
-        if (wishJump) { tempJumpSpeed *= 10; tempRampJumpSpeed *= 2; }
-        rays[0] = new Ray(tr.position, -tr.up);
-        rays[1] = new Ray(tr.position + tr.forward, -tr.up);
-        rays[2] = new Ray(tr.position - tr.forward, -tr.up);
-        rays[3] = new Ray(tr.position + tr.right, -tr.up);
-        rays[4] = new Ray(tr.position - tr.right, -tr.up);
+        playerMovementSettings.V_TempJumpSpeed = playerMovementSettings.P_JumpSpeed;
+        playerMovementSettings.V_TempRampJumpSpeed = playerMovementSettings.P_JumpSpeed * 10;
+        if (playerMovementSettings.V_WishJump) { playerMovementSettings.V_TempJumpSpeed *= 10; playerMovementSettings.V_TempRampJumpSpeed *= 2; }
+        playerMovementSettings.V_Rays_Ground[0] = new Ray(Transform.position, -Transform.up);
+        playerMovementSettings.V_Rays_Ground[1] = new Ray(Transform.position + Transform.forward, -Transform.up);
+        playerMovementSettings.V_Rays_Ground[2] = new Ray(Transform.position - Transform.forward, -Transform.up);
+        playerMovementSettings.V_Rays_Ground[3] = new Ray(Transform.position + Transform.right, -Transform.up);
+        playerMovementSettings.V_Rays_Ground[4] = new Ray(Transform.position - Transform.right, -Transform.up);
         //DO NOT WANT NOT BEING ABLE TO JUMP UNEXPECTEDLY. MUST RAYCAST AT LEAST >= PLAYER HEIGHT=4
 
-        if (!GroundRayCast(rays, distance))
+        if (!GroundRayCast(playerMovementSettings.V_Rays_Ground, distance))
         {
-            floorDetected = false;
-            grounded = false;
-            if (playerVelocity.y < -100f)
+            playerMovementSettings.V_IsFloorDetected = false;
+            playerMovementSettings.V_IsGrounded = false;
+            if (playerMovementSettings.V_PlayerVelocity.y < -100f)
             {
-                landed = false;
+                playerMovementSettings.V_IsLanded = false;
             }
         }
     }
 
+    /// <summary>
+    /// Sets up multiple rays for ground ray casting
+    /// </summary>
+    /// <param name="rays"></param>
+    /// <param name="dist"></param>
+    /// <returns></returns>
     private bool GroundRayCast(Ray[] rays, float dist)
     {
         foreach (Ray ray in rays)
         {
-            if (Physics.RaycastNonAlloc(ray, groundHits, dist, RayCastLayersToHit) > 0)
+            if (Physics.RaycastNonAlloc(ray, playerMovementSettings.V_GroundHits, dist, RayCastLayersToHit) > 0)
             {
-                foreach (RaycastHit hit in groundHits)
+                foreach (RaycastHit hit in playerMovementSettings.V_GroundHits)
                 {
 
-                    floorDetected = true;
-                    groundHit = hit;
-                    groundHitTransform = groundHit.transform;
-                    groundHitTransformName = groundHitTransform.name;
+                    playerMovementSettings.V_IsFloorDetected = true;
+                    playerMovementSettings.V_GroundHit = hit;
+                    playerMovementSettings.V_GroundHitTransform = playerMovementSettings.V_GroundHit.transform;
+                    playerMovementSettings.v_GroundHitTransformName = playerMovementSettings.V_GroundHitTransform.name;
 
-                    if (hit.transform.CompareTag(speedRamp))
+                    if (hit.transform.CompareTag(S_SpeedRamp))
                     {
-                        grounded = false;
-                        if (!isBoosted)
+                        playerMovementSettings.V_IsGrounded = false;
+                        if (!playerMovementSettings.V_IsBoosted)
                         {
-                            boostVelocity = Vector3.Cross(groundHit.normal, -groundHit.transform.right) * 75 + tempRampJumpSpeed * tr.up / 10;
-                            _playerVelocity = boostVelocity;
-                            isBoosted = true;
-                            isSliding = true;
+                            playerMovementSettings.V_BoostVelocity = Vector3.Cross(playerMovementSettings.V_GroundHit.normal, -playerMovementSettings.V_GroundHit.transform.right) * 75 + playerMovementSettings.V_TempRampJumpSpeed * Transform.up / 10;
+                            playerMovementSettings.V_PlayerVelocity = playerMovementSettings.V_BoostVelocity;
+                            playerMovementSettings.V_IsBoosted = true;
+                            playerMovementSettings.V_IsSliding = true;
                         }
                     }
-                    else if (hit.transform.CompareTag(bouncePad))
+                    else if (hit.transform.CompareTag(S_BouncePad))
                     {
-                        grounded = false;
-                        if (!isBoosted)
+                        playerMovementSettings.V_IsGrounded = false;
+                        if (!playerMovementSettings.V_IsBoosted)
                         {
-                            boostVelocity = groundHit.normal * 50 + tempJumpSpeed * tr.up / 10 + new Vector3(_playerVelocity.x, 0, _playerVelocity.z);
-                            _playerVelocity = boostVelocity;
-                            isBoosted = true;
-                            isSliding = false;
+                            playerMovementSettings.V_BoostVelocity = playerMovementSettings.V_GroundHit.normal * 50 + playerMovementSettings.V_TempJumpSpeed * Transform.up / 10 + new Vector3(playerMovementSettings.V_PlayerVelocity.x, 0, playerMovementSettings.V_PlayerVelocity.z);
+                            playerMovementSettings.V_PlayerVelocity = playerMovementSettings.V_BoostVelocity;
+                            playerMovementSettings.V_IsBoosted = true;
+                            playerMovementSettings.V_IsSliding = false;
                         }
 
                     }
                     else
                     {
-                        if (!BouncePadWallDetected)
+                        if (!playerMovementSettings.V_IsBouncePadWallDetected)
                         {
-                            isBoosted = false;
-                            grounded = true;
-                            _playerVelocity.y = 0;
+                            playerMovementSettings.V_IsBoosted = false;
+                            playerMovementSettings.V_IsGrounded = true;
+                            playerMovementSettings.V_PlayerVelocity.y = 0;
                         }
-                        if (isSliding) isSliding = false;
+                        if (playerMovementSettings.V_IsSliding) playerMovementSettings.V_IsSliding = false;
                     }
                     return true;
                 }
@@ -502,42 +359,12 @@ public class PlayerMovement : MonoBehaviour {
         return false;
     }
 
-
-    bool isHitCeiling = false;
-    Ray ray5;
-    RaycastHit[] ceilingHits;
-    void CeilingCheck()
+    /// <summary>
+    /// Sets Player movement direction bassed on Inputs
+    /// </summary>
+    private void Player_SetMovementDir()
     {
-        ray5 = new Ray(tr.position, tr.up);
-
-        //DO NOT WANT NOT BEING ABLE TO JUMP UNEXPECTEDLY. MUST RAYCAST AT LEAST >= PLAYER HEIGHT=4
-        if (Physics.RaycastNonAlloc(ray5, ceilingHits, 4f + .1f, RayCastLayersToHit) > 0)
-        {
-            foreach (RaycastHit hit in ceilingHits)
-            {
-                isHitCeiling = true;
-                if (_playerVelocity.y > 0)
-                    _playerVelocity.y *= -1;
-            }
-        }
-        else
-        {
-            isHitCeiling = false;
-        }
-    }
-
-
-    /**
- * Sets the movement direction based on player input
- */
-    //set the animation of (run forward/strafe left/strafe right) here. We have an animation parameter of type Float, called "HorizontalMovement"
-
-    string animVerticalMovement = "VerticalMovement";
-    string animHorizontalMovement = "HorizontalMovement";
-    string animJump = "Jump";
-    void SetMovementDir()
-    {
-        if (EventManager.Instance.GetScore(pv.owner.NickName, PlayerStatCodes.Health) <= 0)
+        if (EventManager.Instance.GetScore(PhotonView.owner.NickName, PlayerStatCodes.Health) <= 0)
             return;
 
         if (CameraManager.Instance.spectateMode.Equals(CameraManager.SpectateMode.Free))
@@ -547,9 +374,9 @@ public class PlayerMovement : MonoBehaviour {
             return;
         }
 
-        if (isSliding) return;
+        if (playerMovementSettings.V_IsSliding) return;
 
- 
+
         if (InputManager.Instance.GetKey(InputCode.Forward).Equals(true))
         {
             cmd.forwardmove = 1;
@@ -564,187 +391,103 @@ public class PlayerMovement : MonoBehaviour {
         }
         if (InputManager.Instance.GetKey(InputCode.Left).Equals(true))
         {
-            if (movementType.Equals(MovementType.Player))
-            {
-                cmd.rightmove = -1;
-            }
-            else
-            {
-                if (_playerVelocity.magnitude!=0f)
-                {
-                    //if (cmd.rotatemove == 1)
-                    //{
-                    //    bumperCarRotationAcceleration = 0f;
-                    //}
-
-                    cmd.rotatemove = -1;
-                    if (bumperCarRotationAcceleration < 0.1f)
-                    {
-                        bumperCarRotationAcceleration -= 0.00005f;
-                    }
-                    else
-                    {
-                        bumperCarRotationAcceleration = 0.1f;
-                    }
-                }
-                else {
-                    if (bumperCarRotationAcceleration > 0)
-                    {
-                        bumperCarRotationAcceleration += 0.001f;
-                    }
-                    else
-                    {
-                        bumperCarRotationAcceleration = 0;
-                    }
-                }
-            }
+            cmd.rightmove = -1;
         }
         else if (InputManager.Instance.GetKey(InputCode.Right).Equals(true))
         {
-            if (movementType.Equals(MovementType.Player))
-            {
-                cmd.rightmove = 1;
-            }
-            else
-            {
-                if (_playerVelocity.magnitude != 0f)
-                {
-                    //if (cmd.rotatemove == -1)
-                    //{
-                    //    bumperCarRotationAcceleration = 0f;
-                    //}
-
-                    cmd.rotatemove = 1;
-                    if (bumperCarRotationAcceleration > -0.1f)
-                    {
-                        bumperCarRotationAcceleration += 0.00005f;
-                    }
-                    else
-                    {
-                        bumperCarRotationAcceleration = -0.1f;
-                    }
-                }
-                else
-                {
-                    if (bumperCarRotationAcceleration > 0)
-                    {
-                        bumperCarRotationAcceleration -= 0.001f;
-                    }
-                    else
-                    {
-                        bumperCarRotationAcceleration = 0;
-                    }
-                }
-
-            }
+            cmd.rightmove = 1;
         }
         else
         {
             cmd.rightmove = 0;
-            cmd.rotatemove = 0;
-            bumperCarRotationAcceleration = 0f;
         }
 
-        if (movementType.Equals(MovementType.Player))
+        if (InputManager.Instance.GetKey(InputCode.Run).Equals(true))
         {
-            if (InputManager.Instance.GetKey(InputCode.Run).Equals(true))
-            {
-                moveSpeed = 20;
-            }
-            else
-            {
-                moveSpeed = 10;
-            }
+            playerMovementSettings.P_MoveSpeed = 20;
         }
         else
         {
-            moveSpeed = 40;
+            playerMovementSettings.P_MoveSpeed = 10;
         }
-        
-
         //cmd.forwardmove = Input.GetAxis("Vertical");
         //cmd.rightmove   = Input.GetAxis("Horizontal");
     }
 
-    /**
- * Queues the next jump just like in Q3
- */
-    void QueueJump()
+    /// <summary>
+    /// Schedules a Jump request for Jump Behavior
+    /// </summary>
+    private void Player_QueueJump()
     {
         if (CameraManager.Instance.spectateMode == CameraManager.SpectateMode.Free)
             return;
 
-
         //if (Input.GetKey(KeyCode.Space))
         if (InputManager.Instance.GetKey(InputCode.Jump))
         {
-            wishJump = true;
+            playerMovementSettings.V_WishJump = true;
         }
         else
         {
-            wishJump = false;
+            playerMovementSettings.V_WishJump = false;
         }
     }
 
-    /**
- * Execs when the player is in the air
- */
-    void AirMove()
+    /// <summary>
+    /// Updates PlayerVelocity while player is in the air
+    /// </summary>
+    private void Player_AirMove()
     {
         Vector3 wishdir;
-        float wishvel = airAcceleration;
+        float wishvel = playerMovementSettings.P_AirAcceleration;
         float accel;
 
         float scale = CmdScale();
 
-        knockBackOverride = false;
-        isBoosted = false;
+        playerMovementSettings.V_KnockBackOverride = false;
+        playerMovementSettings.V_IsBoosted = false;
 
-        SetMovementDir();
+        Player_SetMovementDir();
 
         wishdir = new Vector3(cmd.rightmove, 0, cmd.forwardmove);
-        wishdir = tr.TransformDirection(wishdir);
+        wishdir = Transform.TransformDirection(wishdir);
 
         float wishspeed = wishdir.magnitude;
-        wishspeed *= moveSpeed;
+        wishspeed *= playerMovementSettings.P_MoveSpeed;
 
         wishdir.Normalize();
-        moveDirectionNorm = wishdir;
+        playerMovementSettings.V_MoveDirectionNorm = wishdir;
         wishspeed *= scale;
 
         // CPM: Aircontrol
         float wishspeed2 = wishspeed;
-        if (Vector3.Dot(_playerVelocity, wishdir) < 0)
-            accel = airDeacceleration;
+        if (Vector3.Dot(playerMovementSettings.V_PlayerVelocity, wishdir) < 0)
+            accel = playerMovementSettings.P_AirDeacceleration;
         else
-            accel = airAcceleration;
+            accel = playerMovementSettings.P_AirAcceleration;
         // If the player is ONLY strafing left or right
         if (cmd.forwardmove == 0 && cmd.rightmove != 0)
         {
-            if (wishspeed > sideStrafeSpeed)
-                wishspeed = sideStrafeSpeed;
-            accel = sideStrafeAcceleration;
+            if (wishspeed > playerMovementSettings.P_SideStrafeSpeed)
+                wishspeed = playerMovementSettings.P_SideStrafeSpeed;
+            accel = playerMovementSettings.P_SideStrafeAcceleration;
         }
 
-        Accelerate(wishdir, wishspeed, accel);
-        if (airControl > 0)
+        Player_Accelerate(wishdir, wishspeed, accel);
+        if (playerMovementSettings.P_AirControl > 0)
         {
-            AirControl(wishdir, wishspeed2);
-        }// !CPM: Aircontrol
-
-        //		if (!airjump) {
-        //			if (kMgr.GetKeyDownPublic(keyType.jump)) {
-        //				_playerVelocity.y = jumpSpeed;
-        //				pv.RPC("JumpFX",PhotonTargets.All, _playerVelocity.magnitude);
-        //				airjump = true;
-        //			}
-        //		}
-
+            Player_AirControl(wishdir, wishspeed2);
+        }
         // Apply gravity
-        _playerVelocity.y -= gravity * Time.deltaTime;
+        playerMovementSettings.V_PlayerVelocity.y -= playerMovementSettings.P_Gravity * Time.deltaTime;
     }
 
-    void AirControl(Vector3 wishdir, float wishspeed)
+    /// <summary>
+    /// Updates PlayerVelocity based on AirControl Parameter Values
+    /// </summary>
+    /// <param name="wishdir"></param>
+    /// <param name="wishspeed"></param>
+    private void Player_AirControl(Vector3 wishdir, float wishspeed)
     {
         float zspeed;
         float speed;
@@ -756,145 +499,211 @@ public class PlayerMovement : MonoBehaviour {
         if (cmd.forwardmove == 0 || wishspeed == 0)
             return;
 
-        zspeed = _playerVelocity.y;
-        _playerVelocity.y = 0;
+        zspeed = playerMovementSettings.V_PlayerVelocity.y;
+        playerMovementSettings.V_PlayerVelocity.y = 0;
         /* Next two lines are equivalent to idTech's VectorNormalize() */
-        speed = _playerVelocity.magnitude;
-        _playerVelocity.Normalize();
+        speed = playerMovementSettings.V_PlayerVelocity.magnitude;
+        playerMovementSettings.V_PlayerVelocity.Normalize();
 
-        dot = Vector3.Dot(_playerVelocity, wishdir);
+        dot = Vector3.Dot(playerMovementSettings.V_PlayerVelocity, wishdir);
         k = 32;
-        k *= airControl * dot * dot * Time.deltaTime;
+        k *= playerMovementSettings.P_AirControl * dot * dot * Time.deltaTime;
 
         // Change direction while slowing down
         if (dot > 0)
         {
-            _playerVelocity.x = _playerVelocity.x * speed + wishdir.x * k;
-            _playerVelocity.y = _playerVelocity.y * speed + wishdir.y * k;
-            _playerVelocity.z = _playerVelocity.z * speed + wishdir.z * k;
+            playerMovementSettings.V_PlayerVelocity.x = playerMovementSettings.V_PlayerVelocity.x * speed + wishdir.x * k;
+            playerMovementSettings.V_PlayerVelocity.y = playerMovementSettings.V_PlayerVelocity.y * speed + wishdir.y * k;
+            playerMovementSettings.V_PlayerVelocity.z = playerMovementSettings.V_PlayerVelocity.z * speed + wishdir.z * k;
 
-            _playerVelocity.Normalize();
-            moveDirectionNorm = _playerVelocity;
+            playerMovementSettings.V_PlayerVelocity.Normalize();
+            playerMovementSettings.V_MoveDirectionNorm = playerMovementSettings.V_PlayerVelocity;
         }
 
-        _playerVelocity.x *= speed;
-        _playerVelocity.y = zspeed; // Note this line
-        _playerVelocity.z *= speed;
+        playerMovementSettings.V_PlayerVelocity.x *= speed;
+        playerMovementSettings.V_PlayerVelocity.y = zspeed; // Note this line
+        playerMovementSettings.V_PlayerVelocity.z *= speed;
 
     }
 
-    /**
- * Called every frame when the engine detects that the player is on the ground
- */
-    void GroundMove()
+    /// <summary>
+    /// Updates PlayerVelocity while player is grounded.
+    /// </summary>
+    private void Player_GroundMove()
     {
         Vector3 wishdir;
         Vector3 wishvel;
 
-
         //set airjump to false again to allow an Extra Jump in Airmove()
-        airjump = false;
+        playerMovementSettings.V_Airjump = false;
 
         // Do not apply friction if the player is queueing up the next jump
-        if (!wishJump)
+        if (!playerMovementSettings.V_WishJump)
         {
-            if (scannedFloorType == 1)
+            if (playerMovementSettings.V_RaycastFloorType == 1)
             {
-                ApplyFriction(0f);
+                Player_ApplyFriction(0f);
             }
             else
             {
-                ApplyFriction(1f);
-
+                Player_ApplyFriction(1f);
             }
-            //			if (_playerVelocity.x < -maxSpeed/2) {
-            //				_playerVelocity.x = -maxSpeed/2;
-            //			}
-            //			else if (_playerVelocity.x > maxSpeed/2) {
-            //				_playerVelocity.x = maxSpeed/2;
-            //			}
-            //			if (_playerVelocity.z < -maxSpeed/2) {
-            //				_playerVelocity.z = -maxSpeed/2;
-            //			}
-            //			else if (_playerVelocity.z > maxSpeed/2) {
-            //				_playerVelocity.z = maxSpeed/2;
-            //			}
         }
         else
         {
-            ApplyFriction(0);
+            Player_ApplyFriction(0);
         }
 
         float scale = CmdScale();
 
-        SetMovementDir();
+        Player_SetMovementDir();
 
         wishdir = new Vector3(cmd.rightmove, 0, cmd.forwardmove);
-        wishdir = tr.TransformDirection(wishdir);
+        wishdir = Transform.TransformDirection(wishdir);
         wishdir.Normalize();
-        moveDirectionNorm = wishdir;
+        playerMovementSettings.V_MoveDirectionNorm = wishdir;
         float wishspeed = wishdir.magnitude;
-        wishspeed *= moveSpeed;
+        wishspeed *= playerMovementSettings.P_MoveSpeed;
 
-        Accelerate(wishdir, wishspeed, runAcceleration);
+        Player_Accelerate(wishdir, wishspeed, playerMovementSettings.P_RunAcceleration);
 
         // Reset the gravity velocity		
-        _playerVelocity.y = 0;
+        playerMovementSettings.V_PlayerVelocity.y = 0;
 
         //SingleJump
-        if (wishJump && !isHitCeiling)
+        if (playerMovementSettings.V_WishJump && !playerMovementSettings.V_IsHitCeiling)
         {
+            playerMovementSettings.V_IsJumping = true;
+            playerMovementSettings.V_PlayerVelocity.y = playerMovementSettings.P_JumpSpeed;
+            playerMovementSettings.V_IsDoubleJumping = false;
 
-            hasJumped = true;
-            _playerVelocity.y = jumpSpeed;
-            hasDoubleJumped = false;
+            playerMovementSettings.V_WishJump = false;
 
-            wishJump = false;
-
-            landed = false;
-            //			pv.RPC("JumpFX",PhotonTargets.All, _playerVelocity.magnitude);
-            //			doubleJumpDeltaTime = 0f;
+            playerMovementSettings.V_IsLanded = false;
         }
-
-
     }
 
-    [HideInInspector] public bool doDustFX;
-    public void DoDustFX(Vector3 vel, bool onGround)
+    /// <summary>
+    /// Detects Player Ceiling Collision
+    /// </summary>
+    private void Player_CeilingCheck()
     {
-        if (vel.magnitude > 0 && onGround)
+        playerMovementSettings.V_Ray_Ceiling = new Ray(Transform.position, Transform.up);
+
+        //DO NOT WANT NOT BEING ABLE TO JUMP UNEXPECTEDLY. MUST RAYCAST AT LEAST >= PLAYER HEIGHT=4
+        if (Physics.RaycastNonAlloc(playerMovementSettings.V_Ray_Ceiling, playerMovementSettings.V_CeilingHits, 4f + .1f, RayCastLayersToHit) > 0)
         {
-            if (!doDustFX)
+            foreach (RaycastHit hit in playerMovementSettings.V_CeilingHits)
             {
-                doDustFX = true;
-                //EventManager.Instance.DustFX_Event(doDustFX);
-                DustFX_Local(doDustFX);
+                playerMovementSettings.V_IsHitCeiling = true;
+                if (playerMovementSettings.V_PlayerVelocity.y > 0)
+                    playerMovementSettings.V_PlayerVelocity.y *= -1;
             }
         }
         else
         {
-            if (doDustFX)
+            playerMovementSettings.V_IsHitCeiling = false;
+        }
+    }
+
+    /// <summary>
+    /// Detects Player Wall Collision
+    /// </summary>
+    /// <param name="dist"></param>
+    private void Player_DetectCollision(float dist)
+    {
+        playerMovementSettings.V_Ray_Velocity = new Ray(Transform.position, playerMovementSettings.V_PlayerVelocity);
+        Debug.DrawRay(Transform.position, playerMovementSettings.V_PlayerVelocity, Color.red);
+        playerMovementSettings.V_SpeedReduction = Vector3.zero;
+
+        if (Physics.RaycastNonAlloc(playerMovementSettings.V_Ray_Velocity, playerMovementSettings.V_WallHits, dist, RayCastLayersToHit) > 0)
+        {
+            foreach (RaycastHit collisionHit in playerMovementSettings.V_WallHits)
             {
-                doDustFX = false;
-                //EventManager.Instance.DustFX_Event(doDustFX);
-                DustFX_Local(doDustFX);
+                if (collisionHit.collider == null) continue;
+                if (collisionHit.transform.CompareTag(S_Level))
+                {
+                    playerMovementSettings.V_SpeedReduction = collisionHit.normal;
+                    float xMag = Mathf.Abs(playerMovementSettings.V_PlayerVelocity.x);
+                    float yMag = Mathf.Abs(playerMovementSettings.V_PlayerVelocity.y);
+                    float zMag = Mathf.Abs(playerMovementSettings.V_PlayerVelocity.z);
+
+                    playerMovementSettings.V_SpeedReduction.x = playerMovementSettings.V_SpeedReduction.x * xMag * 1.1f;
+                    playerMovementSettings.V_SpeedReduction.z = playerMovementSettings.V_SpeedReduction.z * zMag * 1.1f;
+
+                    playerMovementSettings.V_PlayerVelocity.x += playerMovementSettings.V_SpeedReduction.x;
+                    playerMovementSettings.V_PlayerVelocity.z += playerMovementSettings.V_SpeedReduction.z;
+                }
+
+                if (collisionHit.transform.CompareTag(S_BouncePad))
+                {
+                    //Debug.Log("HitBouncePadWall");
+                    playerMovementSettings.V_IsGrounded = false;
+                    //_playerVelocity.y = jumpSpeed * 4;
+                    if (!playerMovementSettings.V_IsBouncePadWallDetected)
+                    {
+                        playerMovementSettings.V_BoostVelocity = collisionHit.normal * 50 + playerMovementSettings.P_JumpSpeed * Transform.up;
+                        playerMovementSettings.V_PlayerVelocity = playerMovementSettings.V_BoostVelocity;
+                        playerMovementSettings.V_IsBouncePadWallDetected = true;
+                    }
+
+                }
+                else
+                {
+                    playerMovementSettings.V_IsBouncePadWallDetected = false;
+                }
+
+            }
+        }
+        else
+        {
+            playerMovementSettings.V_IsBouncePadWallDetected = false;
+        }
+    }
+
+    /// <summary>
+    /// Controls when the dust FX for player is turned on or off
+    /// </summary>
+    /// <param name="vel"></param>
+    /// <param name="onGround"></param>
+    private void DustFX_Behavior(Vector3 vel, bool onGround)
+    {
+        if (vel.magnitude > 0 && onGround)
+        {
+            if (!playerMovementSettings.V_IsDisplayDustFX)
+            {
+                playerMovementSettings.V_IsDisplayDustFX = true;
+                DustFX_Activate(playerMovementSettings.V_IsDisplayDustFX);
+            }
+        }
+        else
+        {
+            if (playerMovementSettings.V_IsDisplayDustFX)
+            {
+                playerMovementSettings.V_IsDisplayDustFX = false;
+                DustFX_Activate(playerMovementSettings.V_IsDisplayDustFX);
             }
         }
     }
 
-    public void DustFX_Local(bool val)
+    /// <summary>
+    /// Turns On or Off Dust FX
+    /// </summary>
+    /// <param name="val"></param>
+    private void DustFX_Activate(bool val)
     {
         playerObjectComponents.DustPrefab.SetActive(val);
     }
 
-    /**
- * Applies friction to the player, called in both the air and on the ground
- */
-    public void ApplyFriction(float t)
+    /// <summary>
+    /// Applies Fiction to the Player
+    /// </summary>
+    /// <param name="t"></param>
+    private void Player_ApplyFriction(float t)
     {
-        if (isSliding) return;
+        if (playerMovementSettings.V_IsSliding) return;
 
-        Vector3 vec = _playerVelocity; // Equivalent to: VectorCopy();
+        Vector3 vec = playerMovementSettings.V_PlayerVelocity;
         float vel;
         float speed;
         float newspeed;
@@ -906,41 +715,40 @@ public class PlayerMovement : MonoBehaviour {
         drop = 0.0f;
 
         /* Only if the player is on the ground then apply friction */
-        if (grounded)
+        if (playerMovementSettings.V_IsGrounded)
         {
-            control = speed < runDeacceleration ? runDeacceleration : speed;
-            drop = control * friction * Time.deltaTime * t;
+            control = speed < playerMovementSettings.P_RunDeacceleration ? playerMovementSettings.P_RunDeacceleration : speed;
+            drop = control * playerMovementSettings.P_Friction * Time.deltaTime * t;
         }
 
         newspeed = speed - drop;
-        playerFriction = newspeed;
+        playerMovementSettings.V_PlayerFriction = newspeed;
         if (newspeed < 0)
             newspeed = 0;
         if (speed > 0)
             newspeed /= speed;
 
-        _playerVelocity.x *= newspeed;
+        playerMovementSettings.V_PlayerVelocity.x *= newspeed;
         // playerVelocity.y *= newspeed;
-        _playerVelocity.z *= newspeed;
+        playerMovementSettings.V_PlayerVelocity.z *= newspeed;
     }
 
-
-    /**
- * Calculates wish acceleration based on player's cmd wishes i.e. WASD movement
- */
-    void Accelerate(Vector3 wishdir, float wishspeed, float accel)
+    /// <summary>
+    /// Calculates wish acceleration based on player's cmd wishes i.e. WASD movement
+    /// </summary>
+    private void Player_Accelerate(Vector3 wishdir, float wishspeed, float accel)
     {
         float addspeed;
         float accelspeed;
         float currentspeed;
 
-        if (_playerVelocity.magnitude >= 100)
+        if (playerMovementSettings.V_PlayerVelocity.magnitude >= 100)
         {
             return;
         }
 
 
-        currentspeed = Vector3.Dot(_playerVelocity, wishdir);
+        currentspeed = Vector3.Dot(playerMovementSettings.V_PlayerVelocity, wishdir);
         addspeed = wishspeed - currentspeed;
         if (addspeed <= 0)
             return;
@@ -948,12 +756,16 @@ public class PlayerMovement : MonoBehaviour {
         if (accelspeed > addspeed)
             accelspeed = addspeed;
 
-        _playerVelocity.x += accelspeed * wishdir.x;
-        _playerVelocity.z += accelspeed * wishdir.z;
+        playerMovementSettings.V_PlayerVelocity.x += accelspeed * wishdir.x;
+        playerMovementSettings.V_PlayerVelocity.z += accelspeed * wishdir.z;
 
     }
 
-    float CmdScale()
+    /// <summary>
+    /// Gets Scale of movement
+    /// </summary>
+    /// <returns></returns>
+    private float CmdScale()
     {
         int max;
         float total;
@@ -968,199 +780,95 @@ public class PlayerMovement : MonoBehaviour {
             return 0;
         }
         total = Mathf.Sqrt(cmd.forwardmove * cmd.forwardmove + cmd.rightmove * cmd.rightmove);
-        scale = moveSpeed * max / (moveScale * total);
+        scale = playerMovementSettings.P_MoveSpeed * max / (playerMovementSettings.P_MoveScale * total);
 
         return scale;
     }
 
 
-    Ray ray6;
-    Vector3 speedReduction = Vector3.zero;
-    bool BouncePadWallDetected;
-    Vector3 horizontalPlaneVelocity;
-    float speedReductionMultiplier = 1.1f;
-    RaycastHit[] collisionHits;
-    RaycastHit collisionHit;
-
-    string s_Level = "Level";
-    void detectCollision(float dist)
+    /// <summary>
+    /// Limits Player Velocity
+    /// </summary>
+    private void Player_LimitSpeed()
     {
-        ray6 = new Ray(tr.position, playerVelocity);
-        Debug.DrawRay(tr.position, playerVelocity, Color.red);
-        speedReduction = Vector3.zero;
-
-        if (Physics.Raycast(ray6, out collisionHit, dist, RayCastLayersToHit))
-        {
-            //foreach (RaycastHit hit in collisionHits)
-            //{
-                if (collisionHit.transform.CompareTag(s_Level))
-                {
-
-                    speedReduction = collisionHit.normal;
-
-                    float xMag = Mathf.Abs(_playerVelocity.x);
-                    float yMag = Mathf.Abs(_playerVelocity.y);
-                    float zMag = Mathf.Abs(_playerVelocity.z);
-
-                    speedReduction.x = speedReduction.x * xMag * 1.1f;
-                    //speedReduction.y = speedReduction.y * yMag * 1.1f;
-                    speedReduction.z = speedReduction.z * zMag * 1.1f;
-
-                    _playerVelocity.x += speedReduction.x;
-                    //_playerVelocity.y += speedReduction.y;
-                    _playerVelocity.z += speedReduction.z;
-
-                }
-
-                if (collisionHit.transform.CompareTag(bouncePad))
-                {
-                    //Debug.Log("HitBouncePadWall");
-                    grounded = false;
-                    //_playerVelocity.y = jumpSpeed * 4;
-                    if (!BouncePadWallDetected)
-                    {
-                        boostVelocity = collisionHit.normal * 50 + jumpSpeed * tr.up;
-                        _playerVelocity = boostVelocity;
-                        BouncePadWallDetected = true;
-                    }
-
-                }
-                else
-                {
-                    BouncePadWallDetected = false;
-                }
-            //}
-
-        }
-        else
-        {
-            BouncePadWallDetected = false;
-        }
-
-    }
-
-    void speedLimiter()
-    {
-        if (isBoosted || isSliding)
+        if (playerMovementSettings.V_IsBoosted || playerMovementSettings.V_IsSliding)
         {
             return;
         }
 
-        if (_playerVelocity.x < -maxSpeed)
+        if (playerMovementSettings.V_PlayerVelocity.x < -playerMovementSettings.P_MaxSpeed)
         {
-            _playerVelocity.x = -maxSpeed;
+            playerMovementSettings.V_PlayerVelocity.x = -playerMovementSettings.P_MaxSpeed;
         }
-        if (_playerVelocity.x > maxSpeed)
+        if (playerMovementSettings.V_PlayerVelocity.x > playerMovementSettings.P_MaxSpeed)
         {
-            _playerVelocity.x = maxSpeed;
+            playerMovementSettings.V_PlayerVelocity.x = playerMovementSettings.P_MaxSpeed;
         }
-        if (_playerVelocity.z < -maxSpeed)
+        if (playerMovementSettings.V_PlayerVelocity.z < -playerMovementSettings.P_MaxSpeed)
         {
-            _playerVelocity.z = -maxSpeed;
+            playerMovementSettings.V_PlayerVelocity.z = -playerMovementSettings.P_MaxSpeed;
         }
-        if (_playerVelocity.z > maxSpeed)
+        if (playerMovementSettings.V_PlayerVelocity.z > playerMovementSettings.P_MaxSpeed)
         {
-            _playerVelocity.z = maxSpeed;
+            playerMovementSettings.V_PlayerVelocity.z = playerMovementSettings.P_MaxSpeed;
         }
 
     }
 
+    /// <summary>
+    /// Rotates the Player
+    /// </summary>
+    private void Player_Rotate()
+    {
+        if (EventManager.Instance.GetScore(PhotonView.owner.NickName, PlayerStatCodes.Health) > 0)
+        {
+            playerMovementSettings.V_RotationY += Input.GetAxis(S_MouseX) * (playerMovementSettings.V_MouseSensitivity / 3f) * 0.1f * Time.timeScale;           
+        }
+        Transform.rotation = Quaternion.Euler(0, playerMovementSettings.V_RotationY, 0); // 1) Rotates the collider
+    }
 
+
+    /* ANY ITEMS RELATED TO PHOTON EVENTS BELOW HERE. IF NEEDED. */
+
+    /// <summary>
+    /// Add PhotonEvent Callbacks
+    /// </summary>
     private void OnEnable()
     {
         PhotonNetwork.OnEventCall += PhotonNetwork_OnEventCall;
     }
 
+    /// <summary>
+    /// Remove PhotonEvent Callbacks
+    /// </summary>
     private void OnDisable()
     {
         PhotonNetwork.OnEventCall -= PhotonNetwork_OnEventCall;
     }
 
+    /// <summary>
+    /// PhotonEvent Callbacks
+    /// </summary>
+    /// <param name="eventCode"></param>
+    /// <param name="content"></param>
+    /// <param name="senderId"></param>
     private void PhotonNetwork_OnEventCall(byte eventCode, object content, int senderId)
     {
-        PhotonEventCodes code = (PhotonEventCodes)eventCode;
-
-        if (code == PhotonEventCodes.ChangeMovementType)
-        {
-            object[] datas = content as object[];
-            if (datas.Length == 2)
-            {
-                ChangeMovementType((int)datas[0], (MovementType)datas[1]);
-            }
-        }
-
     }
 
-    private void ChangeMovementType(int photonOwnerID, MovementType value)
+
+
+    //SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS
+    //SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS
+    //SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS
+
+
+    /* Unused
+    [PunRPC]
+    public void SetKnockBackOverride(bool val, Vector3 newVelocity)
     {
-        if (photonOwnerID == pv.ownerId)
-        {
-            movementType = value;
-            if (movementType.Equals(MovementType.Player))
-            {
-                GetComponent<CapsuleCollider>().radius = 0.5f;
-
-                if (playerAnimation.playerCameraView.Equals(PlayerCameraView.FirstPerson))
-                {
-                    playerObjectComponents.ThirdPersonPlayer.SetActive(false);
-                    playerObjectComponents.FirstPersonPlayer.SetActive(true);
-                }
-                else {
-                    playerObjectComponents.ThirdPersonPlayer.SetActive(true);
-                    playerObjectComponents.FirstPersonPlayer.SetActive(false);
-                }
-                BumperCarObject.SetActive(false);
-
-                CameraObject.transform.localPosition = new Vector3(0, .75f, 0);
-                CameraObject.transform.localRotation = Quaternion.identity;
-                CameraObject.transform.Rotate(new Vector3(0, 0, 0));
-
-                maxSpeed = 40;
-                
-                friction = 2;
-                runAcceleration = 120;
-                runDeacceleration = 120;
-                airAcceleration = 60;
-                airDeacceleration = 60;
-
-            }
-            else if (movementType.Equals(MovementType.BumperCar))
-            {
-                GetComponent<CapsuleCollider>().radius = 1f;
-
-                PlayerObject.SetActive(false);
-                LocalArms.SetActive(false);
-
-                BumperCarObject.SetActive(true);
-
-                CameraObject.transform.localPosition = new Vector3(0, 1.5f, -1.5f);
-                CameraObject.transform.localRotation = Quaternion.identity;
-                CameraObject.transform.Rotate(new Vector3(30, 0, 0));
-
-                maxSpeed = 75;
-
-                friction = 1f;
-                runAcceleration = 1;
-                runDeacceleration = 1;
-                airAcceleration = 1;
-                airDeacceleration = 1;
-            }
-        }
+        playerMovementSettings.V_KnockBackOverride = val;
+        playerMovementSettings.V_PlayerVelocity = newVelocity;
     }
-
-
-    //Called By Player
-    public void PlayerEvents_ChangeMovementType(int photonOwnerID, MovementType movementType)
-    {
-        object[] datas = new object[] { photonOwnerID, movementType };
-
-        RaiseEventOptions options = new RaiseEventOptions()
-        {
-            CachingOption = EventCaching.DoNotCache,
-            Receivers = ReceiverGroup.All
-        };
-
-        PhotonNetwork.RaiseEvent((byte)PhotonEventCodes.ChangeMovementType, datas, true, options);
-    }
-
+    */
 }

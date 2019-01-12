@@ -8,7 +8,7 @@ public class ObjectPoolManager : Photon.PunBehaviour {
     public static ObjectPoolManager Instance;
 
     public GameObject BulletPrefab, BulletImpactPrefab, MuzzleFlashPrefab, BloodSplatterPrefab;
-    PhotonView photonView;
+    PhotonView PhotonView;
     [HideInInspector] public List<GameObject> bulletList, bulletImpactList, muzzleFlashList, bloodSplatterList;
 
     [HideInInspector] public Coroutine FireBulletCoroutine;
@@ -21,7 +21,7 @@ public class ObjectPoolManager : Photon.PunBehaviour {
     {
         Instance = this;
 
-        photonView = GetComponent<PhotonView>();
+        PhotonView = GetComponent<PhotonView>();
 
         PoolPrefab(250, MuzzleFlashPrefab, out muzzleFlashList);
         PoolPrefab(250, BulletPrefab, out bulletList);

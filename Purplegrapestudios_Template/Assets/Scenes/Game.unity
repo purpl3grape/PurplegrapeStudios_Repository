@@ -552,7 +552,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 1260814167}
   m_Direction: 0
   m_MinValue: 0
-  m_MaxValue: 2
+  m_MaxValue: 200
   m_WholeNumbers: 0
   m_Value: 0
   m_OnValueChanged:
@@ -1396,7 +1396,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0.00017670206}
+  m_AnchoredPosition: {x: 0, y: 0.000039242033}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &134083684
@@ -1897,7 +1897,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 964649371}
   m_Direction: 2
   m_Value: 0
-  m_Size: 0.99999994
+  m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -4536,7 +4536,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 44137903}
   m_Direction: 2
   m_Value: 0
-  m_Size: 0.99999994
+  m_Size: 0.9999998
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -5139,6 +5139,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dcbaa1fb47bacaa4982a4b3c00fe927a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerObjectComponents: {fileID: 0}
+  player: {fileID: 0}
+  PlayerViewID: 0
 --- !u!114 &443292564
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11533,7 +11536,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 1751189567}
   m_Direction: 0
   m_MinValue: 0
-  m_MaxValue: 2
+  m_MaxValue: 200
   m_WholeNumbers: 0
   m_Value: 0
   m_OnValueChanged:
@@ -13084,7 +13087,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 1758270684}
   m_Direction: 0
   m_MinValue: 0
-  m_MaxValue: 2
+  m_MaxValue: 200
   m_WholeNumbers: 0
   m_Value: 0
   m_OnValueChanged:
@@ -14603,7 +14606,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 349898499}
   m_HandleRect: {fileID: 349898498}
   m_Direction: 2
-  m_Value: 0.49999982
+  m_Value: 0.50000006
   m_Size: 0.5360656
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -17420,9 +17423,9 @@ MonoBehaviour:
   m_HandleRect: {fileID: 802230519}
   m_Direction: 0
   m_MinValue: 0.1
-  m_MaxValue: 2
+  m_MaxValue: 200
   m_WholeNumbers: 0
-  m_Value: 2
+  m_Value: 30
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
@@ -17807,8 +17810,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1494517108}
   m_HandleRect: {fileID: 1494517107}
   m_Direction: 2
-  m_Value: 0.9999992
-  m_Size: 0.7266667
+  m_Value: 0.9999996
+  m_Size: 0.72666657
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -20673,7 +20676,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -0.000033462307, y: 0.00023766565}
+  m_AnchoredPosition: {x: -0.000033462307, y: 0.000017285165}
   m_SizeDelta: {x: -3.637979e-12, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1792149547
@@ -21013,7 +21016,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1387386072}
   m_HandleRect: {fileID: 1387386071}
   m_Direction: 0
-  m_Value: 1
+  m_Value: 0
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -24298,9 +24301,9 @@ MonoBehaviour:
   Text_FinalSyncMultiplier: {fileID: 1418055871}
   Text_FrameRate: {fileID: 382503827}
   Text_VsyncCount: {fileID: 1009584170}
-  _predictionMultiplierValue: 1
+  _predictionMultiplierValue: 30
   _velocityMultiplierValue: 1
-  _syncMultiplierValue: 1
+  _syncMultiplierValue: 30
   _syncDistanceValue: 100
   _syncYAxisValue: 0.1
   _finalSyncDistanceValue: 5

@@ -47,6 +47,12 @@ public enum PlayerStatCodes
     NameOfLastPlayerKilled = 7,
 }
 
+public enum SpawnCharacterType
+{
+    Player,
+    Car,
+}
+
 public class EventManager : MonoBehaviour
 {
 
@@ -335,10 +341,11 @@ public class EventManager : MonoBehaviour
         SetStat(username, scoreType, currScore + amount);
     }
 
+
     //SPAWNBARRY: Called via SPAWN BUTTON
-    PlayerObjectComponents playerObjectComponents;
-    GameObject player;
-    int PlayerViewID;
+    [SerializeField] PlayerObjectComponents playerObjectComponents;
+    [SerializeField] GameObject player;
+    [SerializeField] int PlayerViewID;
 
     public void SpawnBarry()
     {
@@ -378,6 +385,7 @@ public class EventManager : MonoBehaviour
     {
         playerObjectComponents.DustPrefab.SetActive(val);
     }
+
 
 
 
