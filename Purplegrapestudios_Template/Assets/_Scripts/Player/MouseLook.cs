@@ -14,8 +14,6 @@ public enum RotationAxes { MouseX = 1, MouseY = 2 }
 
 public class MouseLook : MonoBehaviour
 {
-    float sensitivityXY = 0f;
-
     public RotationAxes axes = RotationAxes.MouseX;
     public bool invertY = false;
 
@@ -72,7 +70,7 @@ public class MouseLook : MonoBehaviour
                 //transform.localRotation = originalRotation;
                 //return;
             }
-            if (playerMovement.movementType.Equals(MovementType.BumperCar))
+            if (playerMovement.MovementType.Equals(MovementType.BumperCar))
             {
                 minimumY = -30;
                 maximumY = 30;

@@ -29,6 +29,7 @@ public class BulletBehavior : MonoBehaviour
         tr = GetComponent<Transform>();
         rbody = GetComponent<Rigidbody>();
         lastPosition = tr.position;
+        bulletHits = new RaycastHit[255];
     }
 
     // Update is called once per frame
@@ -41,6 +42,8 @@ public class BulletBehavior : MonoBehaviour
         {
             foreach (RaycastHit hit in bulletHits)
             {
+                if (hit.collider == null) continue;
+
                 hitTransform = hit.transform;
                 if (hitTransform.CompareTag("Player"))
                 {

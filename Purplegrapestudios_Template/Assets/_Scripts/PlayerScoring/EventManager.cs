@@ -50,7 +50,7 @@ public enum PlayerStatCodes
 public enum SpawnCharacterType
 {
     Player,
-    Car,
+    FlightRunner,
 }
 
 public class EventManager : MonoBehaviour

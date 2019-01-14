@@ -69,7 +69,7 @@ public class PlayerAnimation : MonoBehaviour {
 
         playerCameraView = PlayerCameraView.FirstPerson;
 
-        if (PlayerMovement.movementType.Equals(MovementType.Player))
+        if (PlayerMovement.MovementType.Equals(MovementType.Player))
         {
             Param_3rdPersonLowerBody = Animator.StringToHash("Param_3rdPersonLowerBody");
             Param_3rdPersonUpperBody = Animator.StringToHash("Param_3rdPersonUpperBody");
@@ -85,7 +85,7 @@ public class PlayerAnimation : MonoBehaviour {
         //Animation Behavior of Our Controlled Character
         if (PhotonView.isMine)
         {
-            if (PlayerMovement.movementType.Equals(MovementType.Player))
+            if (PlayerMovement.MovementType.Equals(MovementType.Player))
             {
                 //Only Animate 
                 AnimationBehavior_OurPlayer();

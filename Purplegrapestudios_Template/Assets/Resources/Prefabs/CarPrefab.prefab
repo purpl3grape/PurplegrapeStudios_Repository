@@ -578,6 +578,8 @@ GameObject:
   - component: {fileID: 114362858947216202}
   - component: {fileID: 54197086665151512}
   - component: {fileID: 5510179163462907339}
+  - component: {fileID: 4579474673094293241}
+  - component: {fileID: 6567444235280337739}
   m_Layer: 0
   m_Name: CarPrefab
   m_TagString: Player
@@ -732,6 +734,96 @@ MonoBehaviour:
   NetworkPlayerCurrentPosition: {x: 0, y: 0, z: 0}
   PlayerMovement: {fileID: 0}
   PlayerCameraTransform: {fileID: 0}
+--- !u!114 &4579474673094293241
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1165680260921162}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3b7082663358d542bc931d3b26a5c73, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  MovementType: 0
+  SpawnCharacterType: 1
+  playerMovementSettings:
+    P_AirAcceleration: 2
+    P_AirControl: 0.3
+    P_AirDeacceleration: 2
+    P_DoubleJumpDeltaTime: 0.25
+    P_Friction: 6
+    P_Gravity: 20
+    P_JumpAttempts: 2
+    P_JumpSpeed: 8
+    P_MaxSpeed: 150
+    P_MoveScale: 1
+    P_MoveSpeed: 7
+    P_RunAcceleration: 14
+    P_RunDeacceleration: 10
+    P_SideStrafeAcceleration: 50
+    P_SideStrafeSpeed: 1
+    P_WalkSoundRate: 0.15
+    V_Airjump: 0
+    V_BoostVelocity: {x: 0, y: 0, z: 0}
+    V_IsBoosted: 0
+    V_IsBouncePadWallDetected: 0
+    V_IsDisplayDustFX: 0
+    V_IsDoubleJumping: 0
+    V_IsFloorDetected: 0
+    V_IsGrounded: 0
+    V_IsHitCeiling: 0
+    V_IsJumping: 0
+    V_IsLanded: 1
+    V_IsQuietWalk: 0
+    V_IsSliding: 0
+    V_KnockBackOverride: 0
+    V_MouseSensitivity: 100
+    V_MoveDirectionNorm: {x: 0, y: 0, z: 0}
+    V_RotationY: 0
+    V_TopVelocity: 0
+    V_PlayerFriction: 0
+    V_PlayerVelocity: {x: 0, y: 0, z: 0}
+    V_WishJump: 0
+    V_RaycastFloorType: -1
+    V_SpeedReduction: {x: 0, y: 0, z: 0}
+    V_GroundHitTransform: {fileID: 0}
+    V_TempJumpSpeed: 0
+    V_TempRampJumpSpeed: 0
+    v_GroundHitTransformName: 
+  flightRunnerMovementSettings:
+    P_Gravity: 10
+    V_Gear: 0
+    V_AccelMultiplier: 0
+    V_IsBreaking: 0
+    V_IsGrounded: 0
+  RayCastLayersToHit:
+    serializedVersion: 2
+    m_Bits: 0
+--- !u!114 &6567444235280337739
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1165680260921162}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5acae7d164f6e99478e1c1cd5aa0124b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  MainCamera: {fileID: 4253303299460216}
+  HeadingObject: {fileID: 1052193959236816}
+  Wheels_Front:
+  - {fileID: 1832127194364608}
+  - {fileID: 1873666694656770}
+  Wheels_Rear:
+  - {fileID: 1409794679399544}
+  - {fileID: 1136856163966834}
+  BoosterBlades:
+  - {fileID: 1387971369566714}
+  - {fileID: 1341819954120350}
 --- !u!1 &1167710398551668
 GameObject:
   m_ObjectHideFlags: 0

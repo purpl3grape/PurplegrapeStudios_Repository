@@ -218,7 +218,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3b7082663358d542bc931d3b26a5c73, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  movementType: 0
+  MovementType: 0
+  SpawnCharacterType: 0
   playerMovementSettings:
     P_AirAcceleration: 60
     P_AirControl: 0
@@ -263,6 +264,12 @@ MonoBehaviour:
     V_TempJumpSpeed: 0
     V_TempRampJumpSpeed: 0
     v_GroundHitTransformName: 
+  flightRunnerMovementSettings:
+    P_Gravity: 0
+    V_Gear: 0
+    V_AccelMultiplier: 0
+    V_IsBreaking: 0
+    V_IsGrounded: 0
   RayCastLayersToHit:
     serializedVersion: 2
     m_Bits: 19

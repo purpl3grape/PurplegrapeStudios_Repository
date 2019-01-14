@@ -11,20 +11,25 @@ public enum MovementType
 
 public class PlayerMovement : MonoBehaviour
 {
-    public MovementType movementType;
+    [HideInInspector] public MovementType MovementType;
+    public SpawnCharacterType SpawnCharacterType;
 
     /// <summary>
     /// Basic Components (Player and Car)
     /// </summary>
     private Transform Transform;
-    private Transform PlayerCameraTransform;
+    private Transform MainCameraTransform;
     private Rigidbody RigidBody;
     private PhotonView PhotonView;
     /// <summary>
     /// Player Specific Components
     /// </summary>
-    private PlayerObjectComponents playerObjectComponents;
-    private PlayerAnimation playerAnimation;
+    private PlayerObjectComponents PlayerObjectComponents;
+    private PlayerAnimation PlayerAnimation;
+    /// <summary>
+    /// Flight Runner Specific Components
+    /// </summary>
+    private FlightRunnerObjectComponents FlightRunnerObjectComponents;
 
     /// <summary>
     /// FPS Calculation (For Checking FPS Performance)
@@ -105,6 +110,23 @@ public class PlayerMovement : MonoBehaviour
     }
     public PlayerMovementSettings playerMovementSettings;
    
+    [System.Serializable]
+    public class FlightRunnerMovementSettings
+    {
+        public float P_Gravity;
+        public float P_BreakAccelMultiplier;
+        public float P_AccelMultiplier;
+        public float P_FrictionMultiplier;
+        public Dictionary<int, int> D_GearMaxSpeed;
+        [HideInInspector] public int V_Gear;
+        [HideInInspector] public float V_AccelerationMagnitude;
+        [HideInInspector] public bool V_IsBreaking;
+        [HideInInspector] public bool V_IsFourWheelDrive;
+        [HideInInspector] public bool V_IsGrounded;
+       
+    }
+    public FlightRunnerMovementSettings flightRunnerMovementSettings;
+
     /// <summary>
     /// Contains the command the user wishes upon the character
     /// </summary>
@@ -129,22 +151,41 @@ public class PlayerMovement : MonoBehaviour
         PhotonView = GetComponent<PhotonView>();
         RigidBody = GetComponent<Rigidbody>();
         Transform = GetComponent<Transform>();
-        PlayerCameraTransform = GetComponentInChildren<Camera>().transform;
-        //Player Specifics
-        playerObjectComponents = GetComponent<PlayerObjectComponents>();
-        playerAnimation = GetComponent<PlayerAnimation>();
+
+        // Player / Flight Runner Specifics
+        if (SpawnCharacterType.Equals(SpawnCharacterType.Player))
+        {
+            PlayerObjectComponents = GetComponent<PlayerObjectComponents>();
+            MainCameraTransform = PlayerObjectComponents.PlayerCamera.transform;
+            PlayerAnimation = GetComponent<PlayerAnimation>();
+        }
+        if (SpawnCharacterType.Equals(SpawnCharacterType.FlightRunner))
+        {
+            FlightRunnerObjectComponents = GetComponent<FlightRunnerObjectComponents>();
+            MainCameraTransform = FlightRunnerObjectComponents.MainCamera.transform;
+        }
 
         if (!PhotonView.isMine) return;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
-
-
-        //Player Specifics
-        cmd = new Cmd();
-        playerMovementSettings.V_GroundHits = new RaycastHit[255];
-        playerMovementSettings.V_CeilingHits = new RaycastHit[255];
-        playerMovementSettings.V_WallHits = new RaycastHit[255];
+        // Player / Flight Runner Specifics
+        if (SpawnCharacterType.Equals(SpawnCharacterType.Player))
+        {
+            cmd = new Cmd();
+            playerMovementSettings.V_GroundHits = new RaycastHit[255];
+            playerMovementSettings.V_CeilingHits = new RaycastHit[255];
+            playerMovementSettings.V_WallHits = new RaycastHit[255];
+        }
+        if (SpawnCharacterType.Equals(SpawnCharacterType.FlightRunner))
+        {
+            flightRunnerMovementSettings.D_GearMaxSpeed.Add(-1, -60);
+            flightRunnerMovementSettings.D_GearMaxSpeed.Add(1, 20);
+            flightRunnerMovementSettings.D_GearMaxSpeed.Add(2, 30);
+            flightRunnerMovementSettings.D_GearMaxSpeed.Add(3, 40);
+            flightRunnerMovementSettings.D_GearMaxSpeed.Add(4, 50);
+            flightRunnerMovementSettings.D_GearMaxSpeed.Add(5, 60);
+        }
     }
 
     private void Update()
@@ -191,9 +232,9 @@ public class PlayerMovement : MonoBehaviour
         else
         {
             //NETWORKED PLAYER SECTION
-            if (playerObjectComponents.networkPlayerMovement.NetworkPlayerHealth > 0)
+            if (PlayerObjectComponents.networkPlayerMovement.NetworkPlayerHealth > 0)
             {
-                DustFX_Behavior(playerObjectComponents.networkPlayerMovement.NetworkPlayerVelocity, playerObjectComponents.networkPlayerMovement.NetworkPlayerFloorDetected);
+                DustFX_Behavior(PlayerObjectComponents.networkPlayerMovement.NetworkPlayerVelocity, PlayerObjectComponents.networkPlayerMovement.NetworkPlayerFloorDetected);
             }
         }
     }
@@ -213,6 +254,8 @@ public class PlayerMovement : MonoBehaviour
 
     }
 
+    /* Player Behavior Section */
+
     /// <summary>
     /// Called in Update(). This is the General Player Behavior Loop, for updating values in inputs
     /// </summary>
@@ -222,7 +265,7 @@ public class PlayerMovement : MonoBehaviour
         Player_Rotate();                                            // 1) Rotate Player along Y Axis
 
         //IF PLAYER IS ALIVE
-        if (!playerObjectComponents.playerShooting.IsPlayerDead)
+        if (!PlayerObjectComponents.playerShooting.IsPlayerDead)
         {
             //Player Alive Movement Behavior
             Player_DetectCollision(2.5f);                           // 2) Detect Collision Against Wall
@@ -493,7 +536,6 @@ public class PlayerMovement : MonoBehaviour
         float speed;
         float dot;
         float k;
-        int i;
 
         // Can't control movement if not moving forward or backward
         if (cmd.forwardmove == 0 || wishspeed == 0)
@@ -532,7 +574,6 @@ public class PlayerMovement : MonoBehaviour
     private void Player_GroundMove()
     {
         Vector3 wishdir;
-        Vector3 wishvel;
 
         //set airjump to false again to allow an Extra Jump in Airmove()
         playerMovementSettings.V_Airjump = false;
@@ -692,7 +733,7 @@ public class PlayerMovement : MonoBehaviour
     /// <param name="val"></param>
     private void DustFX_Activate(bool val)
     {
-        playerObjectComponents.DustPrefab.SetActive(val);
+        PlayerObjectComponents.DustPrefab.SetActive(val);
     }
 
     /// <summary>
@@ -704,7 +745,6 @@ public class PlayerMovement : MonoBehaviour
         if (playerMovementSettings.V_IsSliding) return;
 
         Vector3 vec = playerMovementSettings.V_PlayerVelocity;
-        float vel;
         float speed;
         float newspeed;
         float control;
@@ -827,8 +867,18 @@ public class PlayerMovement : MonoBehaviour
         Transform.rotation = Quaternion.Euler(0, playerMovementSettings.V_RotationY, 0); // 1) Rotates the collider
     }
 
+    /* Flight Runner Behavior Section */ 
 
-    /* ANY ITEMS RELATED TO PHOTON EVENTS BELOW HERE. IF NEEDED. */
+    // 0) Flight Runner Input                   ~ Check Input               [Update]
+
+    // 1) Wheel Rotate (Front / Rear if 4 wd)   ~ Horiz Input               [Update]
+    // 2) Wheel Spin (Front + Rear)             ~ RigidBody.Velocity        [Update]
+    // 2) Blades Rotate                         ~ AccelerationMagnitude     [Update]
+    // 3) FlightRunnerBody Rotate               ~ Horiz Input               [Update]
+    // 4) RigidBody.Velocity Update             ~ Vert Input                [FixedUpdate]
+
+
+    /* Photon Event Items Below Here. */
 
     /// <summary>
     /// Add PhotonEvent Callbacks

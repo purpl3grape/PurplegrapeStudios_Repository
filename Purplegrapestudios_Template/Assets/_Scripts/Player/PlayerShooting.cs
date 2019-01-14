@@ -125,7 +125,7 @@ public class PlayerShooting : MonoBehaviour
     /// </summary>
     private void PrepareRayCast_FixedUpdate()
     {
-        if (playerMovement.movementType.Equals(MovementType.Player))
+        if (playerMovement.MovementType.Equals(MovementType.Player))
         {
             if (playerAnimation.playerCameraView.Equals(PlayerCameraView.FirstPerson))
             {
@@ -183,7 +183,7 @@ public class PlayerShooting : MonoBehaviour
     /// </summary>
     private void FireBullet_FixedUpdate()
     {
-        if (playerMovement.movementType.Equals(MovementType.Player))
+        if (playerMovement.MovementType.Equals(MovementType.Player))
         {
             //The Event is handled PARTIALLY over the network, and partially locally. This is to simulate the Bullet starting point based on 1st or 3rd Person View
             //This is because the Bullet position at the beginning is DIFFERENT for the Local Player v.s. the Networked Player that others see
@@ -223,7 +223,6 @@ public class PlayerShooting : MonoBehaviour
         closestHit = null;
         float distance = 0;
         hitPoint = Vector3.zero;
-        bool foundHit = false;
 
         foreach (RaycastHit hit in hits)
         {
@@ -236,8 +235,6 @@ public class PlayerShooting : MonoBehaviour
                 //a) not us
                 //b) the first thing we hit (that is not us)
                 //c) or, if not b, is at least closer than the previous closest thing
-
-                foundHit = true;
 
                 closestHit = currentHitTransform;
                 distance = hit.distance;

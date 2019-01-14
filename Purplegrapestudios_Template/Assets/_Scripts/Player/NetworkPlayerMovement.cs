@@ -153,7 +153,7 @@ public class NetworkPlayerMovement : Photon.MonoBehaviour
         {
             //We are sending data
             stream.SendNext(SpawnCharacterType);
-            stream.SendNext(PlayerMovement.movementType);
+            stream.SendNext(PlayerMovement.MovementType);
 
             stream.SendNext(Transform.position);
             stream.SendNext(Transform.rotation);

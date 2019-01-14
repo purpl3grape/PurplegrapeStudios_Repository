@@ -173,40 +173,55 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3b7082663358d542bc931d3b26a5c73, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  CameraConainter: {fileID: 0}
   movementType: 0
-  LocalArms: {fileID: 1335148341854382}
-  PlayerObject: {fileID: 1824662899138758}
-  BumperCarObject: {fileID: 1383266237163220}
-  CameraObject: {fileID: 1353567968482372}
-  Health: 0
-  playerViewYOffset: 0.6
-  xMouseSensitivity: 30
-  yMouseSensitivity: 30
-  P_AirAcceleration: 2
-  P_AirControl: 0.3
-  P_AirDeacceleration: 2
-  P_DoubleJumpDeltaTime: 0.25
-  P_Friction: 6
-  P_Gravity: 20
-  P_JumpAttempts: 2
-  P_JumpSpeed: 8
-  P_MaxSpeed: 150
-  P_MoveScale: 1
-  P_MoveSpeed: 7
-  P_RunAcceleration: 14
-  P_RunDeacceleration: 10
-  P_SideStrafeAcceleration: 50
-  P_SideStrafeSpeed: 1
-  P_WalkSoundRate: 0.15
-  knockBackOverride: 0
-  isBoosted: 0
-  isSliding: 0
-  floorDetected: 0
+  SpawnCharacterType: 0
+  playerMovementSettings:
+    P_AirAcceleration: 2
+    P_AirControl: 0.3
+    P_AirDeacceleration: 2
+    P_DoubleJumpDeltaTime: 0.25
+    P_Friction: 6
+    P_Gravity: 20
+    P_JumpAttempts: 2
+    P_JumpSpeed: 8
+    P_MaxSpeed: 150
+    P_MoveScale: 1
+    P_MoveSpeed: 7
+    P_RunAcceleration: 14
+    P_RunDeacceleration: 10
+    P_SideStrafeAcceleration: 50
+    P_SideStrafeSpeed: 1
+    P_WalkSoundRate: 0.15
+    V_Airjump: 0
+    V_BoostVelocity: {x: 0, y: 0, z: 0}
+    V_IsBoosted: 0
+    V_IsBouncePadWallDetected: 0
+    V_IsDisplayDustFX: 0
+    V_IsDoubleJumping: 0
+    V_IsFloorDetected: 0
+    V_IsGrounded: 0
+    V_IsHitCeiling: 0
+    V_IsJumping: 0
+    V_IsLanded: 1
+    V_IsQuietWalk: 0
+    V_IsSliding: 0
+    V_KnockBackOverride: 0
+    V_MouseSensitivity: 100
+    V_MoveDirectionNorm: {x: 0, y: 0, z: 0}
+    V_RotationY: 0
+    V_TopVelocity: 0
+    V_PlayerFriction: 0
+    V_PlayerVelocity: {x: 0, y: 0, z: 0}
+    V_WishJump: 0
+    V_RaycastFloorType: -1
+    V_SpeedReduction: {x: 0, y: 0, z: 0}
+    V_GroundHitTransform: {fileID: 0}
+    V_TempJumpSpeed: 0
+    V_TempRampJumpSpeed: 0
+    v_GroundHitTransformName: 
   RayCastLayersToHit:
     serializedVersion: 2
     m_Bits: 0
-  doDustFX: 0
 --- !u!114 &114401264883238002
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -337,8 +352,8 @@ MonoBehaviour:
   ObservedComponents:
   - {fileID: 114406585726411520}
   ObservedComponentsFoldoutOpen: 1
-  viewIdField: 3
-  instantiationId: 3
+  viewIdField: 0
+  instantiationId: -1
   currentMasterID: -1
   isRuntimeInstantiated: 0
 --- !u!114 &114350887431022474
