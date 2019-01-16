@@ -380,6 +380,40 @@ public class EventManager : MonoBehaviour
 
     }
 
+    [SerializeField] FlightRunnerObjectComponents FlightRunnerObjectComponents;
+    [SerializeField] GameObject FlightRunner;
+    [SerializeField] GameObject FlightRunnerHeading;
+    [SerializeField] PhotonView FlightRunnerPhotonView;
+    public void SpawnFlightRunner()
+    {
+        float randomValue = Random.Range(-30f, 30f);
+        FlightRunner = PhotonNetwork.Instantiate(Path.Combine("Prefabs", "CarPrefab"), new Vector3(randomValue, 120, randomValue), Quaternion.identity, 0);
+        FlightRunnerObjectComponents = FlightRunner.GetComponent<FlightRunnerObjectComponents>();
+        FlightRunnerHeading = FlightRunnerObjectComponents.HeadingObject;
+        FlightRunnerPhotonView = FlightRunner.GetComponent<PhotonView>();
+
+        if (PhotonNetwork.offlineMode)
+        {
+            GameObject.FindObjectOfType<CullArea>().gameObject.SetActive(false);
+            FlightRunner.GetComponent<NetworkCullingHandler>().enabled = false;
+        }
+
+        FlightRunnerObjectComponents.MainCamera.gameObject.SetActive(true);
+
+        FlightRunner.GetComponent<NetworkPlayerMovement>().SpawnCharacterType = SpawnCharacterType.FlightRunner;
+        FlightRunner.GetComponent<Rigidbody>().isKinematic = false;
+        FlightRunnerObjectComponents.HeadingObject.GetComponent<Rigidbody>().isKinematic = false;
+
+        EventManager.Instance.SetStat_Health(PhotonNetwork.player.NickName, PlayerStatCodes.Health, 100);
+        EventManager.Instance.SetStat_Health(PhotonNetwork.player.NickName, PlayerStatCodes.Kills, 0);
+        EventManager.Instance.SetStat_Health(PhotonNetwork.player.NickName, PlayerStatCodes.Deaths, 0);
+        EventManager.Instance.SetStat_Health(PhotonNetwork.player.NickName, PlayerStatCodes.DamageDealt, 0);
+        EventManager.Instance.SetStat_Health(PhotonNetwork.player.NickName, PlayerStatCodes.DamageReceived, 0);
+
+        SpawnPlayerCanvas.Instance.gameObject.SetActive(false);
+        CameraManager.Instance.SpectatorCamera.SetActive(false);
+
+    }
 
     public void DustFX(bool val)
     {

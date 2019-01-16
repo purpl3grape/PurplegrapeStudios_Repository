@@ -9,10 +9,33 @@ public enum MovementType
     BumperCar,
 }
 
+public enum InputRange
+{
+    Zero_One,
+    MinusOne_Zero,
+    MinusOne_One,
+}
+
+public enum FlightRunnerInputType
+{
+    MouseAndKeyboard,
+    LogitechG920Wheel,
+}
+
+public enum FlightRunnerDriveType
+{
+    TwoWheel,
+    FourWheel,
+}
+
 public class PlayerMovement : MonoBehaviour
 {
     [HideInInspector] public MovementType MovementType;
+    [HideInInspector] public FlightRunnerInputType FlighRunnerInputType;
+    [HideInInspector] public FlightRunnerDriveType FlightRunnerDriveType;
+
     public SpawnCharacterType SpawnCharacterType;
+    public LayerMask RayCastLayersToHit;
 
     /// <summary>
     /// Basic Components (Player and Car)
@@ -117,12 +140,22 @@ public class PlayerMovement : MonoBehaviour
         public float P_BreakAccelMultiplier;
         public float P_AccelMultiplier;
         public float P_FrictionMultiplier;
-        public Dictionary<int, int> D_GearMaxSpeed;
+        public Dictionary<int, int> D_GearMaxSpeed = new Dictionary<int, int>();
+        public LayerMask SlopeLayer;
+        [HideInInspector] public Ray[] V_Rays_Ground = new Ray[5];
+        [HideInInspector] public RaycastHit[] V_GroundHits;
+        [HideInInspector] public RaycastHit lr;
+        [HideInInspector] public RaycastHit rr;
+        [HideInInspector] public RaycastHit lf;
+        [HideInInspector] public RaycastHit rf;
+        [HideInInspector] public Vector3 upDir;
+
         [HideInInspector] public int V_Gear;
-        [HideInInspector] public float V_AccelerationMagnitude;
-        [HideInInspector] public bool V_IsBreaking;
+        [HideInInspector] public float V_AccelMag;
+        [HideInInspector] public float V_BreakMag;
         [HideInInspector] public bool V_IsFourWheelDrive;
-        [HideInInspector] public bool V_IsGrounded;
+        [HideInInspector] public float tiltLerpValue;
+        public bool V_IsGrounded;
        
     }
     public FlightRunnerMovementSettings flightRunnerMovementSettings;
@@ -137,7 +170,15 @@ public class PlayerMovement : MonoBehaviour
     }
     private Cmd cmd; // Player commands, stores wish commands that the player asks for (Forward, back, jump, etc)
 
-    public LayerMask RayCastLayersToHit;
+    private class FlightRunnerCmd
+    {
+        public float steeringWheel;
+        public float accelPedal;
+        public float breakPedal;
+        public int gearNumber;
+    }
+    private FlightRunnerCmd flightRunnerCmd;
+
 
     //SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS
     //SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS
@@ -179,7 +220,14 @@ public class PlayerMovement : MonoBehaviour
         }
         if (SpawnCharacterType.Equals(SpawnCharacterType.FlightRunner))
         {
-            flightRunnerMovementSettings.D_GearMaxSpeed.Add(-1, -60);
+            flightRunnerCmd = new FlightRunnerCmd();
+            flightRunnerCmd.gearNumber = 1;
+            flightRunnerMovementSettings.V_Gear = flightRunnerCmd.gearNumber;
+            flightRunnerMovementSettings.V_GroundHits = new RaycastHit[255];
+            FlighRunnerInputType = FlightRunnerInputType.MouseAndKeyboard;
+            FlightRunnerDriveType = FlightRunnerDriveType.TwoWheel;
+
+            flightRunnerMovementSettings.D_GearMaxSpeed.Add(-1, 60);
             flightRunnerMovementSettings.D_GearMaxSpeed.Add(1, 20);
             flightRunnerMovementSettings.D_GearMaxSpeed.Add(2, 30);
             flightRunnerMovementSettings.D_GearMaxSpeed.Add(3, 40);
@@ -224,18 +272,40 @@ public class PlayerMovement : MonoBehaviour
                 return;
 
             //Player Behavior Update
-            Update_PlayerInputBehavior();
-            
+            if (SpawnCharacterType.Equals(SpawnCharacterType.Player))
+                Update_PlayerBehavior();
+
             //Car Behavior Update
-            //Update_CarInputBehavior();
+            else if (SpawnCharacterType.Equals(SpawnCharacterType.FlightRunner))
+            {
+                FlightRunner_GetInput(Time.deltaTime);
+                if (Cursor.visible)
+                {
+                    GameCanvas.Instance.gameObject.SetActive(true);
+                }
+                else
+                {
+                    GameCanvas.Instance.gameObject.SetActive(false);
+                }
+
+            }
         }
         else
         {
             //NETWORKED PLAYER SECTION
-            if (PlayerObjectComponents.networkPlayerMovement.NetworkPlayerHealth > 0)
+            if (SpawnCharacterType.Equals(SpawnCharacterType.Player))
             {
-                DustFX_Behavior(PlayerObjectComponents.networkPlayerMovement.NetworkPlayerVelocity, PlayerObjectComponents.networkPlayerMovement.NetworkPlayerFloorDetected);
+                if (PlayerObjectComponents.networkPlayerMovement.NetworkPlayerHealth > 0)
+                {
+                    //Dust FX for Player Movement
+                    DustFX_Behavior(PlayerObjectComponents.networkPlayerMovement.NetworkPlayerVelocity, PlayerObjectComponents.networkPlayerMovement.NetworkPlayerFloorDetected);
+                }
             }
+            else if (SpawnCharacterType.Equals(SpawnCharacterType.FlightRunner))
+            {
+
+            }
+
         }
     }
 
@@ -245,21 +315,45 @@ public class PlayerMovement : MonoBehaviour
     private void FixedUpdate()
     {
         if (!PhotonView.isMine) { return; }
-        if (RigidBody.velocity.magnitude > 0) { RigidBody.velocity = Vector3.zero; }
 
         /* MOVEMENT PLAYER: here's the important part*/
-        RigidBody.MovePosition(RigidBody.position + playerMovementSettings.V_PlayerVelocity * Time.fixedDeltaTime);
+        if (SpawnCharacterType.Equals(SpawnCharacterType.Player))
+        {
+            if (RigidBody.velocity.magnitude > 0) { RigidBody.velocity = Vector3.zero; }
 
-        /* MOVEMENT CAR: here's the important part*/
+            RigidBody.MovePosition(RigidBody.position + playerMovementSettings.V_PlayerVelocity * Time.fixedDeltaTime);
+        }
 
+        /* MOVEMENT Flight Runner: here's the important part*/
+        else if (SpawnCharacterType.Equals(SpawnCharacterType.FlightRunner))
+        {
+            FlightRunner_BladesRotate();
+            FlightRunner_SpinWheels();
+            FlightRunner_RotateWheels();
+            FlightRunner_RotateChasis(Time.fixedDeltaTime);
+            FlightRunner_GroundCheck();
+            FlightRunner_TiltSlope();
+            FlightRunner_MoveRigidBody();
+        }
     }
 
-    /* Player Behavior Section */
+    /* Player Behavior Section 
+     *
+     * 2)   Queue Jump
+     * 3)   GroundCheck
+     * 4)   CeilingCheck
+     * 5)   WallCheck
+     * 6)   GroundMove / AirMove ~ MovementDirection, Accelerate
+     * 7)   SpeedLimiter
+     * 8)   ApplyFriction
+     * 9)   Player Rotate
+     * 10)  Player Move
+     */
 
     /// <summary>
     /// Called in Update(). This is the General Player Behavior Loop, for updating values in inputs
     /// </summary>
-    private void Update_PlayerInputBehavior()
+    private void Update_PlayerBehavior()
     {
         //TODO: Zoom_Vs_NoZoom
         Player_Rotate();                                            // 1) Rotate Player along Y Axis
@@ -330,7 +424,7 @@ public class PlayerMovement : MonoBehaviour
         playerMovementSettings.V_Rays_Ground[4] = new Ray(Transform.position - Transform.right, -Transform.up);
         //DO NOT WANT NOT BEING ABLE TO JUMP UNEXPECTEDLY. MUST RAYCAST AT LEAST >= PLAYER HEIGHT=4
 
-        if (!GroundRayCast(playerMovementSettings.V_Rays_Ground, distance))
+        if (!Player_GroundRayCast(playerMovementSettings.V_Rays_Ground, distance))
         {
             playerMovementSettings.V_IsFloorDetected = false;
             playerMovementSettings.V_IsGrounded = false;
@@ -347,7 +441,7 @@ public class PlayerMovement : MonoBehaviour
     /// <param name="rays"></param>
     /// <param name="dist"></param>
     /// <returns></returns>
-    private bool GroundRayCast(Ray[] rays, float dist)
+    private bool Player_GroundRayCast(Ray[] rays, float dist)
     {
         foreach (Ray ray in rays)
         {
@@ -867,16 +961,257 @@ public class PlayerMovement : MonoBehaviour
         Transform.rotation = Quaternion.Euler(0, playerMovementSettings.V_RotationY, 0); // 1) Rotates the collider
     }
 
-    /* Flight Runner Behavior Section */ 
+    /* Flight Runner Behavior Section
+     * 
+     * 0)    Flight Runner Input                   :: Check Input               [Update]
+     * 1)    Wheel Rotate (Front / Rear if 4 wd)   :: Horiz Input               [Update]
+     * 2)    Wheel Spin (Front + Rear)             :: RigidBody.Velocity        [Update]
+     * 2)    Blades Rotate                         :: AccelerationMagnitude     [FixedUpdate]
+     * 3)    FlightRunnerBody Rotate               :: Horiz Input               [FixedUpdate]
+     * 4)    RigidBody.Velocity Update             :: Vert Input                [FixedUpdate]
+     * 5)    FlightRunner Tilt                     :: AutoCheck                 [FixedUpdate]
+     */
 
-    // 0) Flight Runner Input                   ~ Check Input               [Update]
+    private void FlightRunner_GetInput(float DeltaTime)
+    {
+        if (EventManager.Instance.GetScore(PhotonView.owner.NickName, PlayerStatCodes.Health) <= 0)
+            return;
 
-    // 1) Wheel Rotate (Front / Rear if 4 wd)   ~ Horiz Input               [Update]
-    // 2) Wheel Spin (Front + Rear)             ~ RigidBody.Velocity        [Update]
-    // 2) Blades Rotate                         ~ AccelerationMagnitude     [Update]
-    // 3) FlightRunnerBody Rotate               ~ Horiz Input               [Update]
-    // 4) RigidBody.Velocity Update             ~ Vert Input                [FixedUpdate]
+        flightRunnerCmd.accelPedal = Input.GetAxis("GasInput");
+        flightRunnerCmd.breakPedal = Input.GetAxis("BreakInput");
+        flightRunnerCmd.steeringWheel = Input.GetAxis("SteeringInput") * 30;
 
+        if (Input.GetButton("Gear1Input"))
+        {
+            flightRunnerCmd.gearNumber = 1;
+        }
+        else if (Input.GetButton("Gear2Input"))
+        {
+            flightRunnerCmd.gearNumber = 2;
+        }
+        else if (Input.GetButton("Gear3Input"))
+        {
+            flightRunnerCmd.gearNumber = 3;
+        }
+        else if (Input.GetButton("Gear4Input"))
+        {
+            flightRunnerCmd.gearNumber = 4;
+        }
+        else if (Input.GetButton("Gear5Input"))
+        {
+            flightRunnerCmd.gearNumber = 5;
+        }
+        else if (Input.GetButton("ReverseInput"))
+        {
+            flightRunnerCmd.gearNumber = -1;
+        }
+
+        if (Input.GetKeyDown(KeyCode.F6))
+        {
+            if (FlightRunnerDriveType.Equals(FlightRunnerDriveType.TwoWheel))
+            {
+                FlightRunnerDriveType = FlightRunnerDriveType.FourWheel;
+            }
+            else if (FlightRunnerDriveType.Equals(FlightRunnerDriveType.FourWheel))
+            {
+                FlightRunnerDriveType = FlightRunnerDriveType.TwoWheel;
+                foreach (GameObject Wheel in FlightRunnerObjectComponents.Axel_Rear)
+                {
+                    Wheel.transform.localRotation = Quaternion.Euler(0, 0, 0);
+                }
+            }
+        }
+
+        flightRunnerMovementSettings.V_Gear = flightRunnerCmd.gearNumber;
+        flightRunnerCmd.accelPedal = FlighRunnerInputType == FlightRunnerInputType.LogitechG920Wheel ? NormalizeInput(flightRunnerCmd.accelPedal, InputRange.MinusOne_One) : NormalizeInput(flightRunnerCmd.accelPedal, InputRange.Zero_One);
+        flightRunnerCmd.breakPedal = FlighRunnerInputType == FlightRunnerInputType.LogitechG920Wheel ? NormalizeInput(flightRunnerCmd.breakPedal, InputRange.MinusOne_One) : NormalizeInput(flightRunnerCmd.breakPedal, InputRange.Zero_One);
+
+        //Flight Runner Acceleration Input Calculations
+        if (flightRunnerCmd.accelPedal > 0)
+        {
+            if (flightRunnerMovementSettings.V_Gear != -1)
+            {
+                //Forward Movement
+                flightRunnerMovementSettings.V_AccelMag = flightRunnerMovementSettings.V_AccelMag < flightRunnerMovementSettings.D_GearMaxSpeed[flightRunnerMovementSettings.V_Gear] ? flightRunnerMovementSettings.V_AccelMag += 5 * flightRunnerCmd.accelPedal * DeltaTime : flightRunnerMovementSettings.D_GearMaxSpeed[flightRunnerMovementSettings.V_Gear];
+            }
+            else
+            {
+                //Reverse Movement
+                flightRunnerMovementSettings.V_AccelMag = flightRunnerMovementSettings.V_AccelMag > -flightRunnerMovementSettings.D_GearMaxSpeed[flightRunnerMovementSettings.V_Gear] ? flightRunnerMovementSettings.V_AccelMag -= 5 * flightRunnerCmd.accelPedal * DeltaTime : -flightRunnerMovementSettings.D_GearMaxSpeed[flightRunnerMovementSettings.V_Gear];
+            }
+        }
+        //Flight Runner Breaking Input Calculations
+        else
+        {
+            //Break or Friction with Forward Move
+            if (flightRunnerMovementSettings.V_AccelMag > 0)
+            {
+                flightRunnerMovementSettings.V_AccelMag = flightRunnerCmd.breakPedal > 0 ? flightRunnerMovementSettings.V_AccelMag -= 20 * flightRunnerCmd.breakPedal * DeltaTime : flightRunnerMovementSettings.V_AccelMag -= 4 * DeltaTime;
+            }
+            //Break or Friction with Reverse Move
+            else if (flightRunnerMovementSettings.V_AccelMag < 0)
+            {
+                flightRunnerMovementSettings.V_AccelMag = flightRunnerCmd.breakPedal > 0 ? flightRunnerMovementSettings.V_AccelMag += 20 * flightRunnerCmd.breakPedal * DeltaTime : flightRunnerMovementSettings.V_AccelMag += 4 * DeltaTime;
+            }
+            //Idle
+            else
+            {
+                flightRunnerMovementSettings.V_AccelMag = 0;
+            }
+        }
+    }
+
+    private void FlightRunner_SpinWheels()
+    {
+        foreach (GameObject Wheel in FlightRunnerObjectComponents.Wheels_Front)
+        {
+            Wheel.transform.rotation *= (Quaternion.Euler(0, flightRunnerMovementSettings.V_AccelMag * .35f, 0));
+        }
+        foreach (GameObject Wheel in FlightRunnerObjectComponents.Wheels_Rear)
+        {
+            Wheel.transform.rotation *= (Quaternion.Euler(0, flightRunnerMovementSettings.V_AccelMag * .35f, 0));
+        }
+
+    }
+
+    private void FlightRunner_RotateWheels()
+    {
+        foreach (GameObject Wheel in FlightRunnerObjectComponents.Axel_Front)
+        {
+            Wheel.transform.localRotation = Quaternion.Euler(0, flightRunnerCmd.steeringWheel, 0);
+        }
+        if (FlightRunnerDriveType.Equals(FlightRunnerDriveType.FourWheel))
+        {
+            foreach (GameObject Wheel in FlightRunnerObjectComponents.Axel_Rear)
+            {
+                Wheel.transform.localRotation = Quaternion.Euler(0, -flightRunnerCmd.steeringWheel, 0);
+            }
+        }
+    }
+
+    private void FlightRunner_RotateChasis(float DeltaTime)
+    {
+        if (flightRunnerMovementSettings.V_Gear != -1)
+        {
+            if (FlightRunnerDriveType.Equals(FlightRunnerDriveType.TwoWheel))
+            {
+                FlightRunnerObjectComponents.HeadingObject.transform.rotation *= Quaternion.Euler(0, flightRunnerCmd.steeringWheel * 2 * DeltaTime, 0);
+            }
+            else
+            {
+                FlightRunnerObjectComponents.HeadingObject.transform.rotation *= Quaternion.Euler(0, flightRunnerCmd.steeringWheel * 4 * DeltaTime, 0);
+            }
+        }
+        else
+        {
+            if (FlightRunnerDriveType.Equals(FlightRunnerDriveType.TwoWheel))
+            {
+                FlightRunnerObjectComponents.HeadingObject.transform.rotation *= Quaternion.Euler(0, -flightRunnerCmd.steeringWheel * 2 * DeltaTime, 0);
+            }
+            else
+            {
+                FlightRunnerObjectComponents.HeadingObject.transform.rotation *= Quaternion.Euler(0, -flightRunnerCmd.steeringWheel * 4 * DeltaTime, 0);
+            }
+        }
+    }
+
+    private void FlightRunner_BladesRotate()
+    {
+        foreach (GameObject Blade in FlightRunnerObjectComponents.BoosterBlades)
+        {
+            Blade.transform.rotation *= Quaternion.Euler(0, flightRunnerMovementSettings.V_AccelMag * .7f + 5f, 0);
+        }
+    }
+
+    private void FlightRunner_GroundCheck()
+    {
+        flightRunnerMovementSettings.V_Rays_Ground[0] = new Ray(Transform.position, -Transform.up);
+        flightRunnerMovementSettings.V_Rays_Ground[1] = new Ray(Transform.position + Transform.forward, -Transform.up);
+        flightRunnerMovementSettings.V_Rays_Ground[2] = new Ray(Transform.position - Transform.forward, -Transform.up);
+        flightRunnerMovementSettings.V_Rays_Ground[3] = new Ray(Transform.position + Transform.right, -Transform.up);
+        flightRunnerMovementSettings.V_Rays_Ground[4] = new Ray(Transform.position - Transform.right, -Transform.up);
+
+        flightRunnerMovementSettings.V_IsGrounded = FlightRunner_GroundRaycast(flightRunnerMovementSettings.V_Rays_Ground, 1);
+    }
+
+    private bool FlightRunner_GroundRaycast(Ray[] rays, float dist)
+    {
+        foreach (Ray ray in rays)
+        {
+            Debug.DrawRay(Transform.position, -Transform.up, Color.red);
+            if (Physics.RaycastNonAlloc(ray, flightRunnerMovementSettings.V_GroundHits, dist, RayCastLayersToHit) > 0)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private Vector3 FlightRunner_GetSlope(Transform tr)
+    {
+        Physics.Raycast(tr.position - Vector3.forward * .1f - (Vector3.right * .1f) + Vector3.up * 1, Vector3.down, out flightRunnerMovementSettings.lr, 5, flightRunnerMovementSettings.SlopeLayer);
+        Physics.Raycast(tr.position - Vector3.forward * .1f + (Vector3.right * .1f) + Vector3.up * 1, Vector3.down, out flightRunnerMovementSettings.rr, 5, flightRunnerMovementSettings.SlopeLayer);
+        Physics.Raycast(tr.position + Vector3.forward * .1f - (Vector3.right * .1f) + Vector3.up * 1, Vector3.down, out flightRunnerMovementSettings.lf, 5, flightRunnerMovementSettings.SlopeLayer);
+        Physics.Raycast(tr.position + Vector3.forward * .1f + (Vector3.right * .1f) + Vector3.up * 1, Vector3.down, out flightRunnerMovementSettings.rf, 5, flightRunnerMovementSettings.SlopeLayer);
+        flightRunnerMovementSettings.upDir = (Vector3.Cross(flightRunnerMovementSettings.rr.point - Vector3.up * 1, flightRunnerMovementSettings.lr.point - Vector3.up * 1) +
+                 Vector3.Cross(flightRunnerMovementSettings.lr.point - Vector3.up * 1, flightRunnerMovementSettings.lf.point - Vector3.up * 1) +
+                 Vector3.Cross(flightRunnerMovementSettings.lf.point - Vector3.up * 1, flightRunnerMovementSettings.rf.point - Vector3.up * 1) +
+                 Vector3.Cross(flightRunnerMovementSettings.rf.point - Vector3.up * 1, flightRunnerMovementSettings.rr.point - Vector3.up * 1)
+                ).normalized;
+
+        flightRunnerMovementSettings.upDir = new Vector3(flightRunnerMovementSettings.upDir.x, tr.up.y, flightRunnerMovementSettings.upDir.z);
+        return flightRunnerMovementSettings.upDir;
+    }
+
+    private void FlightRunner_TiltSlope()
+    {
+        flightRunnerMovementSettings.tiltLerpValue = Mathf.Max(0.1f, (0.5f - flightRunnerMovementSettings.V_AccelMag / 60));
+        Transform.up = Vector3.Lerp(Transform.up, FlightRunner_GetSlope(Transform), flightRunnerMovementSettings.tiltLerpValue);
+    }
+
+    private void FlightRunner_MoveRigidBody()
+    {
+        if (flightRunnerMovementSettings.V_IsGrounded)
+        {
+            //Flight Runner Ground Movement
+            RigidBody.velocity = (FlightRunnerObjectComponents.HeadingObject.transform.forward * flightRunnerMovementSettings.V_AccelMag);
+        }
+        else
+        {
+            //Flight Runner Air Movement
+            RigidBody.velocity = (FlightRunnerObjectComponents.HeadingObject.transform.forward * flightRunnerMovementSettings.V_AccelMag - Transform.up * flightRunnerMovementSettings.P_Gravity);
+        }
+    }
+
+    /// <summary>
+    /// Normalizes inputs to a range of 0 to 1
+    /// </summary>
+    /// <param name="input"></param>
+    /// <param name="inputRange"></param>
+    /// <returns></returns>
+    private float NormalizeInput(float input, InputRange inputRange)
+    {
+        //Range: -1, 1, normalized to 0, 1
+
+        if (inputRange.Equals(InputRange.MinusOne_One))
+        {
+            input = ((input + 1) / 2);
+            return input;
+        }
+        else if (inputRange.Equals(InputRange.MinusOne_Zero))
+        {
+            input = input + 1;
+            return input;
+        }
+        else if (inputRange.Equals(InputRange.Zero_One))
+        {
+            return input;
+        }
+        else
+        {
+            return input;
+        }
+    }
 
     /* Photon Event Items Below Here. */
 

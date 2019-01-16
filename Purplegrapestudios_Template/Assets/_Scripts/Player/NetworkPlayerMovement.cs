@@ -7,8 +7,9 @@ public class NetworkPlayerMovement : Photon.MonoBehaviour
 {
     public SpawnCharacterType SpawnCharacterType;
 
-    //Networked Players Received Variables for Interpolating Movement, as well as Animating
     private SpawnCharacterType NetworkSpawnCharacterType;
+
+    //Networked Players Received Variables for Interpolating Movement, as well as Animating
     private Quaternion NetworkPlayerRotation = Quaternion.identity;
     private Vector3 NetworkPlayerPosition = Vector3.zero;
     [HideInInspector] public Vector3 NetworkPlayerVelocity = Vector3.zero;    //PlayerAnimation.cs uses this variable
@@ -17,10 +18,13 @@ public class NetworkPlayerMovement : Photon.MonoBehaviour
     [HideInInspector] public float NetworkPlayerAimAngle;                     //PlayerAnimation.cs uses this variable
     [HideInInspector] public float NetworkPlayerCurrentAimAngle;              //PlayerAnimation.cs uses this variable
     [HideInInspector] public MovementType NetworkMovementType;              //PlayerAnimation.cs uses this variable: Player Movement Type, (More to come)
-    private Vector3 NetworkPlayerStartPosition = Vector3.zero;          //Determining Move Interpolation Progress
-    [HideInInspector] public Vector3 NetworkPlayerCurrentPosition;      //Determining Spawn Bullet Position (For any Networked Player)
 
+    //FlightRunner Received Variables for Interpolating Movement
+    private Quaternion NetworkPlayerHeadingRotation = Quaternion.identity;
 
+    //Shared Interpolating Movement Variables: Progress, Position
+    private Vector3 NetworkStartPosition = Vector3.zero;          //Determining Move Interpolation Progress
+    [HideInInspector] public Vector3 NetworkCurrentPosition;      //Determining Spawn Bullet Position (For any Networked Player)
 
     //Variables for Calculating Package Delay
     private float lastPackageReceivedTimeStamp = 0f;
@@ -49,11 +53,14 @@ public class NetworkPlayerMovement : Photon.MonoBehaviour
     //Player Components: Required Components for Multiplayer Character object
     private PhotonView PhotonView;
     private Transform Transform;
+    private PlayerMovement PlayerMovement;
+    private Rigidbody Rigidbody;
     //Player Components: Specific Components for Multiplayer Character object
-    [SerializeField]private PlayerMovement PlayerMovement;
     private PlayerShooting PlayerShooting;
     private PlayerAnimation PlayerAnimation;
     private MouseLook PlayerMouseLook;
+    //Flight Runner Components: Specific Components for Multiplayer FlightRunner object
+    [SerializeField] private FlightRunnerObjectComponents FlightRunnerObjectComponents;
 
 
     //Assign our 'PlayerCamerTransform' to Portal Cameras' variable: 'PlayerCamera'
@@ -65,12 +72,15 @@ public class NetworkPlayerMovement : Photon.MonoBehaviour
     {
         PhotonView = GetComponent<PhotonView>();
         Transform = GetComponent<Transform>();
+        Rigidbody = GetComponent<Rigidbody>();
+        PlayerMovement = GetComponent<PlayerMovement>();
+
 
         if (SpawnCharacterType.Equals(SpawnCharacterType.Player))
         {
             Awake_Player();
         }
-        else
+        else if (SpawnCharacterType.Equals(SpawnCharacterType.FlightRunner))
         {
             Awake_Car();
         }
@@ -95,7 +105,6 @@ public class NetworkPlayerMovement : Photon.MonoBehaviour
 
     public void Awake_Player()
     {
-        PlayerMovement = GetComponent<PlayerMovement>();
         PlayerShooting = GetComponent<PlayerShooting>();
         PlayerAnimation = GetComponent<PlayerAnimation>();
         PlayerMouseLook = GetComponent<PlayerObjectComponents>().PlayerCamera.GetComponent<MouseLook>();
@@ -104,7 +113,7 @@ public class NetworkPlayerMovement : Photon.MonoBehaviour
 
     private void Awake_Car()
     {
-
+        FlightRunnerObjectComponents = GetComponent<FlightRunnerObjectComponents>();
     }
 
 
@@ -140,7 +149,14 @@ public class NetworkPlayerMovement : Photon.MonoBehaviour
         }
         else
         {
-            SmoothMoove();
+            if (SpawnCharacterType.Equals(SpawnCharacterType.Player))
+            {
+                SmoothMoove(NetworkPlayerPosition, NetworkPlayerRotation, Quaternion.identity);
+            }
+            else if (SpawnCharacterType.Equals(SpawnCharacterType.FlightRunner))
+            {
+                SmoothMoove(NetworkPlayerPosition, NetworkPlayerRotation, NetworkPlayerHeadingRotation);
+            }
         }
 
     }
@@ -153,34 +169,53 @@ public class NetworkPlayerMovement : Photon.MonoBehaviour
         {
             //We are sending data
             stream.SendNext(SpawnCharacterType);
-            stream.SendNext(PlayerMovement.MovementType);
-
-            stream.SendNext(Transform.position);
-            stream.SendNext(Transform.rotation);
-            stream.SendNext(PlayerMovement.playerMovementSettings.V_PlayerVelocity);
-            stream.SendNext(PlayerMovement.playerMovementSettings.V_IsFloorDetected);
-            stream.SendNext(EventManager.Instance.GetScore(photonView.owner.NickName, PlayerStatCodes.Health));
-
+            // 
+            // 
+            // stream.SendNext(PlayerMovement.MovementType);
+            // 
+            // stream.SendNext(Transform.position);
+            // stream.SendNext(Transform.rotation);
+            // stream.SendNext(PlayerMovement.playerMovementSettings.V_PlayerVelocity);
+            // stream.SendNext(PlayerMovement.playerMovementSettings.V_IsFloorDetected);
+            // stream.SendNext(EventManager.Instance.GetScore(photonView.owner.NickName, PlayerStatCodes.Health));
+            // 
+            // if (SpawnCharacterType.Equals(SpawnCharacterType.Player))
+            //     stream.SendNext(PlayerMouseLook.GetCameraRotationY());
             if (SpawnCharacterType.Equals(SpawnCharacterType.Player))
-                stream.SendNext(PlayerMouseLook.GetCameraRotationY());
+            {
+                PlayerSendSerializeStream(stream, info);
+            }
+            else if (SpawnCharacterType.Equals(SpawnCharacterType.FlightRunner))
+            {
+                FlightRunnerSendSerializeStream(stream, info);
+            }
         }
         else
         {
             //To capture the 'start' position
-            NetworkPlayerStartPosition = NetworkPlayerPosition;
+            NetworkStartPosition = NetworkPlayerPosition;
 
             //We are reading incoming data
             NetworkSpawnCharacterType = (SpawnCharacterType)stream.ReceiveNext();
-            NetworkMovementType = (MovementType)stream.ReceiveNext();
-            NetworkPlayerPosition = (Vector3)stream.ReceiveNext();
-            NetworkPlayerRotation = (Quaternion)stream.ReceiveNext();
-            NetworkPlayerVelocity = (Vector3)stream.ReceiveNext();
-            NetworkPlayerFloorDetected = (bool)stream.ReceiveNext();
-            NetworkPlayerHealth = (int)stream.ReceiveNext();
-
+            // NetworkMovementType = (MovementType)stream.ReceiveNext();
+            // NetworkPlayerPosition = (Vector3)stream.ReceiveNext();
+            // NetworkPlayerRotation = (Quaternion)stream.ReceiveNext();
+            // NetworkPlayerVelocity = (Vector3)stream.ReceiveNext();
+            // NetworkPlayerFloorDetected = (bool)stream.ReceiveNext();
+            // NetworkPlayerHealth = (int)stream.ReceiveNext();
+            // 
+            // if (NetworkSpawnCharacterType.Equals(SpawnCharacterType.Player))
+            // {
+            //     NetworkPlayerAimAngle = (float)stream.ReceiveNext();
+            // }
             if (NetworkSpawnCharacterType.Equals(SpawnCharacterType.Player))
-                NetworkPlayerAimAngle = (float)stream.ReceiveNext();
-
+            {
+                PlayerReceiveSerializeStream(stream, info);
+            }
+            else if (NetworkSpawnCharacterType.Equals(SpawnCharacterType.FlightRunner))
+            {
+                FlightRunnerReceiveSerializeStream(stream, info);
+            }
 
             //When we receive an update here, our syncTime gets re-initialized to 0
             syncTime = 0f;
@@ -194,18 +229,63 @@ public class NetworkPlayerMovement : Photon.MonoBehaviour
             {
                 Transform.position = NetworkPlayerPosition;
                 Transform.rotation = NetworkPlayerRotation;
+                if (SpawnCharacterType.Equals(SpawnCharacterType.FlightRunner))
+                {
+                    FlightRunnerObjectComponents.HeadingObject.transform.rotation = NetworkPlayerHeadingRotation;
+                }
                 gotFirstUpdate = true;
             }
 
         }
+
     }
 
-
-
-    private void SmoothMoove()
+    private void PlayerSendSerializeStream(PhotonStream stream, PhotonMessageInfo info)
     {
-        currentDistance = Vector3.Distance(Transform.position, NetworkPlayerPosition);
-        fullDistance = Vector3.Distance(NetworkPlayerStartPosition, NetworkPlayerPosition);
+        //stream.SendNext(SpawnCharacterType);
+        stream.SendNext(PlayerMovement.MovementType);
+        stream.SendNext(Transform.position);
+        stream.SendNext(Transform.rotation);
+        stream.SendNext(PlayerMovement.playerMovementSettings.V_PlayerVelocity);
+        stream.SendNext(PlayerMovement.playerMovementSettings.V_IsFloorDetected);
+        stream.SendNext(EventManager.Instance.GetScore(photonView.owner.NickName, PlayerStatCodes.Health));
+        stream.SendNext(PlayerMouseLook.GetCameraRotationY());
+    }
+
+    private void PlayerReceiveSerializeStream(PhotonStream stream, PhotonMessageInfo info)
+    {
+        //NetworkSpawnCharacterType = (SpawnCharacterType)stream.ReceiveNext();
+        NetworkMovementType = (MovementType)stream.ReceiveNext();
+        NetworkPlayerPosition = (Vector3)stream.ReceiveNext();
+        NetworkPlayerRotation = (Quaternion)stream.ReceiveNext();
+        NetworkPlayerVelocity = (Vector3)stream.ReceiveNext();
+        NetworkPlayerFloorDetected = (bool)stream.ReceiveNext();
+        NetworkPlayerHealth = (int)stream.ReceiveNext();
+        NetworkPlayerAimAngle = (float)stream.ReceiveNext();
+    }
+
+    private void FlightRunnerSendSerializeStream(PhotonStream stream, PhotonMessageInfo info)
+    {
+        //stream.SendNext(SpawnCharacterType);
+        stream.SendNext(Transform.position);
+        stream.SendNext(Transform.rotation);
+        stream.SendNext(FlightRunnerObjectComponents.HeadingObject.transform.rotation);
+        stream.SendNext(Rigidbody.velocity);
+    }
+
+    private void FlightRunnerReceiveSerializeStream(PhotonStream stream, PhotonMessageInfo info)
+    {
+        //NetworkSpawnCharacterType = (SpawnCharacterType)stream.ReceiveNext();
+        NetworkPlayerPosition = (Vector3)stream.ReceiveNext();
+        NetworkPlayerRotation = (Quaternion)stream.ReceiveNext();
+        NetworkPlayerHeadingRotation = (Quaternion)stream.ReceiveNext();
+        NetworkPlayerVelocity = (Vector3)stream.ReceiveNext();
+    }
+
+    private void SmoothMoove(Vector3 NetworkPosition, Quaternion NetworkRotation, Quaternion NetworkHeadingRotation)
+    {
+        currentDistance = Vector3.Distance(Transform.position, NetworkPosition);
+        fullDistance = Vector3.Distance(NetworkStartPosition, NetworkPosition);
         if (fullDistance != 0)
         {
             progress = currentDistance / fullDistance;
@@ -227,8 +307,19 @@ public class NetworkPlayerMovement : Photon.MonoBehaviour
         //lerpValue = Mathf.Pow(syncTime / syncDelay, 5);
         if (currentDistance > syncDistanceValue)
         {
-            Transform.position = NetworkPlayerPosition;
-            Transform.rotation = NetworkPlayerRotation;
+            Transform.position = NetworkPosition;
+            Transform.rotation = NetworkRotation;
+            if (SpawnCharacterType.Equals(SpawnCharacterType.Player))
+            {
+                Transform.position = NetworkPosition;
+                Transform.rotation = NetworkRotation;
+            }
+            else if (SpawnCharacterType.Equals(SpawnCharacterType.FlightRunner))
+            {
+                Rigidbody.position = NetworkPosition;
+                Rigidbody.rotation = NetworkRotation;
+                FlightRunnerObjectComponents.HeadingObject.transform.rotation = NetworkPlayerHeadingRotation;
+            }
             //Or a more aggressive smoothing move
 
         }
@@ -239,26 +330,59 @@ public class NetworkPlayerMovement : Photon.MonoBehaviour
                 if (syncPrecictionValue != 0)
                 {
 
-                    Transform.rotation = Quaternion.Lerp(Transform.rotation, NetworkPlayerRotation, syncTime / syncDelay);
-                    Transform.position = Vector3.Lerp(Transform.position, NetworkPlayerPosition, lerpValue);
+                    if (SpawnCharacterType.Equals(SpawnCharacterType.Player))
+                    {
+                    Transform.position = Vector3.Lerp(Transform.position, NetworkPosition, lerpValue);
+                    Transform.rotation = Quaternion.Lerp(Transform.rotation, NetworkRotation, syncTime / syncDelay);
+                    }
+                    else if (SpawnCharacterType.Equals(SpawnCharacterType.FlightRunner))
+                    {
+                        Rigidbody.position = Vector3.Lerp(Rigidbody.position, NetworkPosition, lerpValue);
+                        Rigidbody.rotation = Quaternion.Lerp(Rigidbody.rotation, NetworkRotation, syncTime / syncDelay);
+                        FlightRunnerObjectComponents.HeadingObject.transform.rotation = Quaternion.Lerp(FlightRunnerObjectComponents.HeadingObject.transform.rotation, NetworkPlayerHeadingRotation, syncTime / syncDelay);
+                    }
 
-                    exponentialMultiplier = Mathf.Clamp(Vector3.Distance(Transform.position, NetworkPlayerPosition), 0.0001f, 1);
+                    exponentialMultiplier = Mathf.Clamp(Vector3.Distance(Transform.position, NetworkPosition), 0.0001f, 1);
                     if (exponentialMultiplier < finalSyncDistance)
                     {
-                        Transform.position = Vector3.LerpUnclamped(Transform.position, NetworkPlayerPosition, progress * finalSyncMultiplier / exponentialMultiplier);
+                        if (SpawnCharacterType.Equals(SpawnCharacterType.Player))
+                        {
+                            Transform.position = Vector3.LerpUnclamped(Transform.position, NetworkPosition, progress * finalSyncMultiplier / exponentialMultiplier);
+                        }
+                        else if (SpawnCharacterType.Equals(SpawnCharacterType.FlightRunner))
+                        {
+                            Rigidbody.position = Vector3.LerpUnclamped(Rigidbody.position, NetworkPosition, progress * finalSyncMultiplier / exponentialMultiplier);
+                        }
+
                     }
                     if (syncYAxisValue != 0)
                     {
                         heightLerp = Transform.position.y;
-                        heightLerp = Mathf.Lerp(Transform.position.y, NetworkPlayerPosition.y, syncYAxisValue);
+                        heightLerp = Mathf.Lerp(Transform.position.y, NetworkPosition.y, syncYAxisValue);
                         HeightAdjustmentVector = new Vector3(Transform.position.x, heightLerp, Transform.position.z);
-                        Transform.position = HeightAdjustmentVector;
+                        if (SpawnCharacterType.Equals(SpawnCharacterType.Player))
+                        {
+                            Transform.position = HeightAdjustmentVector;
+                        }
+                        else if (SpawnCharacterType.Equals(SpawnCharacterType.FlightRunner))
+                        {
+                            Rigidbody.position = HeightAdjustmentVector;
+                        }
                     }
                 }
                 else
                 {
-                    Transform.position = NetworkPlayerPosition;
-                    Transform.rotation = NetworkPlayerRotation;
+                    if (SpawnCharacterType.Equals(SpawnCharacterType.Player))
+                    {
+                        Transform.position = NetworkPosition;
+                        Transform.rotation = NetworkRotation;
+                    }
+                    else if (SpawnCharacterType.Equals(SpawnCharacterType.FlightRunner))
+                    {
+                        Rigidbody.position = NetworkPosition;
+                        Rigidbody.rotation = NetworkRotation;
+                        FlightRunnerObjectComponents.HeadingObject.transform.rotation = NetworkPlayerHeadingRotation;
+                    }
                 }
             }
             else
@@ -266,16 +390,32 @@ public class NetworkPlayerMovement : Photon.MonoBehaviour
                 if (syncYAxisValue != 0)
                 {
                     heightLerp = Transform.position.y;
-                    heightLerp = Mathf.Lerp(Transform.position.y, NetworkPlayerPosition.y, syncYAxisValue);
+                    heightLerp = Mathf.Lerp(Transform.position.y, NetworkPosition.y, syncYAxisValue);
                     HeightAdjustmentVector = new Vector3(Transform.position.x, heightLerp, Transform.position.z);
-                    Transform.position = HeightAdjustmentVector;
+                    if (SpawnCharacterType.Equals(SpawnCharacterType.Player))
+                    {
+                        Transform.position = HeightAdjustmentVector;
+                    }
+                    else if (SpawnCharacterType.Equals(SpawnCharacterType.Player))
+                    {
+                        Rigidbody.position = HeightAdjustmentVector;
+                    }
                 }
-                Transform.rotation = Quaternion.Lerp(Transform.rotation, NetworkPlayerRotation, syncTime / syncDelay);
-                Transform.position = Vector3.Lerp(Transform.position, NetworkPlayerPosition, progress);
+                if (SpawnCharacterType.Equals(SpawnCharacterType.Player))
+                {
+                    Transform.position = Vector3.Lerp(Transform.position, NetworkPosition, progress);
+                    Transform.rotation = Quaternion.Lerp(Transform.rotation, NetworkRotation, syncTime / syncDelay);
+                }
+                else if (SpawnCharacterType.Equals(SpawnCharacterType.FlightRunner))
+                {
+                    Rigidbody.position = Vector3.Lerp(Rigidbody.position, NetworkPosition, progress);
+                    Rigidbody.rotation = Quaternion.Lerp(Rigidbody.rotation, NetworkRotation, syncTime / syncDelay);
+                    FlightRunnerObjectComponents.HeadingObject.transform.rotation = Quaternion.Lerp(FlightRunnerObjectComponents.HeadingObject.transform.rotation, NetworkPlayerHeadingRotation, syncTime / syncDelay);
+                }
             }
         }
 
-        NetworkPlayerCurrentPosition = Transform.position;
+        NetworkCurrentPosition = Transform.position;
 
     }
 

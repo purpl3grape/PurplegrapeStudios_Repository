@@ -79,10 +79,13 @@ public class PlayerShooting : MonoBehaviour
     {
         if (!photonView.isMine)
         {
-            if (doBulletFX)
+            if (photonView.owner.NickName.Equals(receivedOwnerName))
             {
-                ObjectPoolManager.Instance.SpawnBullet_Local(networkPlayerMovement.NetworkPlayerCurrentPosition, receivedHitPoint, receivedHitTarget, receivedOwnerName);
-                doBulletFX = false;
+                if (doBulletFX)
+                {
+                    ObjectPoolManager.Instance.SpawnBullet_Local(networkPlayerMovement.NetworkCurrentPosition, receivedHitPoint, receivedHitTarget, receivedOwnerName);
+                    doBulletFX = false;
+                }
             }
         }
         else

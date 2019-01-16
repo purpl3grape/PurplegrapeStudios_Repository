@@ -17,6 +17,8 @@ public class ToxicArea : MonoBehaviour {
             currentHealth = EventManager.Instance.GetScore(photonView.owner.NickName, PlayerStatCodes.Health);
             if (currentHealth > 0)
             {
+                if (other.GetComponent<PlayerShooting>() == null)
+                    return;
                 if (other.GetComponent<PlayerShooting>().enabled)
                 {
                     EventManager.Instance.UpdateStat_Health(photonView.owner.NickName, PlayerStatCodes.Health, -20);

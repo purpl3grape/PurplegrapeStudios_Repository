@@ -219,7 +219,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MovementType: 0
+  FlighRunnerInputType: 0
+  FlightRunnerDriveType: 0
   SpawnCharacterType: 0
+  RayCastLayersToHit:
+    serializedVersion: 2
+    m_Bits: 16403
   playerMovementSettings:
     P_AirAcceleration: 60
     P_AirControl: 0
@@ -266,13 +271,19 @@ MonoBehaviour:
     v_GroundHitTransformName: 
   flightRunnerMovementSettings:
     P_Gravity: 0
+    P_BreakAccelMultiplier: 0
+    P_AccelMultiplier: 0
+    P_FrictionMultiplier: 0
+    SlopeLayer:
+      serializedVersion: 2
+      m_Bits: 0
+    upDir: {x: 0, y: 0, z: 0}
     V_Gear: 0
-    V_AccelMultiplier: 0
-    V_IsBreaking: 0
+    V_AccelMag: 0
+    V_BreakMag: 0
+    V_IsFourWheelDrive: 0
+    tiltLerpValue: 0
     V_IsGrounded: 0
-  RayCastLayersToHit:
-    serializedVersion: 2
-    m_Bits: 19
 --- !u!114 &114406585726411520
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -292,8 +303,8 @@ MonoBehaviour:
   NetworkPlayerAimAngle: 0
   NetworkPlayerCurrentAimAngle: 0
   NetworkMovementType: 0
-  NetworkPlayerCurrentPosition: {x: 0, y: 0, z: 0}
-  PlayerMovement: {fileID: 0}
+  NetworkCurrentPosition: {x: 0, y: 0, z: 0}
+  FlightRunnerObjectComponents: {fileID: 0}
   PlayerCameraTransform: {fileID: 0}
 --- !u!114 &114401264883238002
 MonoBehaviour:
@@ -5995,7 +6006,7 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 2871
+    m_Bits: 19255
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -11506,7 +11517,7 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 3383
+    m_Bits: 19767
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
