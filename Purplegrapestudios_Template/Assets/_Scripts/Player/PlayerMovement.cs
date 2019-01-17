@@ -972,6 +972,8 @@ public class PlayerMovement : MonoBehaviour
      * 5)    FlightRunner Tilt                     :: AutoCheck                 [FixedUpdate]
      */
 
+    float V_BoostTimer;
+    float V_GravityValue;
     private void FlightRunner_GetInput(float DeltaTime)
     {
         if (EventManager.Instance.GetScore(PhotonView.owner.NickName, PlayerStatCodes.Health) <= 0)
@@ -1004,6 +1006,38 @@ public class PlayerMovement : MonoBehaviour
         else if (Input.GetButton("ReverseInput"))
         {
             flightRunnerCmd.gearNumber = -1;
+        }
+
+        if (Input.GetKey(KeyCode.Space))
+        {
+            V_IsFlightRunnerBoost = true;
+            V_BoostTimer = 0;
+        }
+
+        if (V_IsFlightRunnerBoost)
+        {
+            if (V_BoostTimer < .25f)
+            {
+                if (V_BoostTimer == 0)
+                {
+                    V_GravityValue = 0;
+                }
+                V_BoostTimer += DeltaTime;
+            }
+            else
+            {
+                V_BoostTimer = 0;
+                V_IsFlightRunnerBoost = false;
+            }
+        }
+
+        if (!flightRunnerMovementSettings.V_IsGrounded)
+        {
+            V_GravityValue = Mathf.Min(V_GravityValue += flightRunnerMovementSettings.P_Gravity * DeltaTime, 40);
+        }
+        else
+        {
+            V_GravityValue = 0;
         }
 
         if (Input.GetKeyDown(KeyCode.F6))
@@ -1126,12 +1160,12 @@ public class PlayerMovement : MonoBehaviour
     private void FlightRunner_GroundCheck()
     {
         flightRunnerMovementSettings.V_Rays_Ground[0] = new Ray(Transform.position, -Transform.up);
-        flightRunnerMovementSettings.V_Rays_Ground[1] = new Ray(Transform.position + Transform.forward, -Transform.up);
-        flightRunnerMovementSettings.V_Rays_Ground[2] = new Ray(Transform.position - Transform.forward, -Transform.up);
-        flightRunnerMovementSettings.V_Rays_Ground[3] = new Ray(Transform.position + Transform.right, -Transform.up);
-        flightRunnerMovementSettings.V_Rays_Ground[4] = new Ray(Transform.position - Transform.right, -Transform.up);
+        flightRunnerMovementSettings.V_Rays_Ground[1] = new Ray(Transform.position + Transform.forward * 4.0f, -Transform.up);
+        flightRunnerMovementSettings.V_Rays_Ground[2] = new Ray(Transform.position - Transform.forward * 4.0f, -Transform.up);
+        flightRunnerMovementSettings.V_Rays_Ground[3] = new Ray(Transform.position + Transform.right * 4.0f, -Transform.up);
+        flightRunnerMovementSettings.V_Rays_Ground[4] = new Ray(Transform.position - Transform.right * 4.0f, -Transform.up);
 
-        flightRunnerMovementSettings.V_IsGrounded = FlightRunner_GroundRaycast(flightRunnerMovementSettings.V_Rays_Ground, 1);
+        flightRunnerMovementSettings.V_IsGrounded = FlightRunner_GroundRaycast(flightRunnerMovementSettings.V_Rays_Ground, 4.0f);
     }
 
     private bool FlightRunner_GroundRaycast(Ray[] rays, float dist)
@@ -1141,23 +1175,30 @@ public class PlayerMovement : MonoBehaviour
             Debug.DrawRay(Transform.position, -Transform.up, Color.red);
             if (Physics.RaycastNonAlloc(ray, flightRunnerMovementSettings.V_GroundHits, dist, RayCastLayersToHit) > 0)
             {
+                //Debug.Log("Grounded: " + V_GravityValue + ", VEL: " + RigidBody.velocity.magnitude);
                 return true;
             }
         }
+        //Debug.Log("In Air: " + V_GravityValue + ", VEL: " + RigidBody.velocity.magnitude);
         return false;
     }
 
     private Vector3 FlightRunner_GetSlope(Transform tr)
     {
-        Physics.Raycast(tr.position - Vector3.forward * .1f - (Vector3.right * .1f) + Vector3.up * 1, Vector3.down, out flightRunnerMovementSettings.lr, 5, flightRunnerMovementSettings.SlopeLayer);
-        Physics.Raycast(tr.position - Vector3.forward * .1f + (Vector3.right * .1f) + Vector3.up * 1, Vector3.down, out flightRunnerMovementSettings.rr, 5, flightRunnerMovementSettings.SlopeLayer);
-        Physics.Raycast(tr.position + Vector3.forward * .1f - (Vector3.right * .1f) + Vector3.up * 1, Vector3.down, out flightRunnerMovementSettings.lf, 5, flightRunnerMovementSettings.SlopeLayer);
-        Physics.Raycast(tr.position + Vector3.forward * .1f + (Vector3.right * .1f) + Vector3.up * 1, Vector3.down, out flightRunnerMovementSettings.rf, 5, flightRunnerMovementSettings.SlopeLayer);
+        Physics.Raycast(tr.position - Vector3.forward * 4.1f - (Vector3.right * 4.1f) + Vector3.up * 1, Vector3.down, out flightRunnerMovementSettings.lr, 8, flightRunnerMovementSettings.SlopeLayer);
+        Physics.Raycast(tr.position - Vector3.forward * 4.1f + (Vector3.right * 4.1f) + Vector3.up * 1, Vector3.down, out flightRunnerMovementSettings.rr, 8, flightRunnerMovementSettings.SlopeLayer);
+        Physics.Raycast(tr.position + Vector3.forward * 4.1f - (Vector3.right * 4.1f) + Vector3.up * 1, Vector3.down, out flightRunnerMovementSettings.lf, 8, flightRunnerMovementSettings.SlopeLayer);
+        Physics.Raycast(tr.position + Vector3.forward * 4.1f + (Vector3.right * 4.1f) + Vector3.up * 1, Vector3.down, out flightRunnerMovementSettings.rf, 8, flightRunnerMovementSettings.SlopeLayer);
         flightRunnerMovementSettings.upDir = (Vector3.Cross(flightRunnerMovementSettings.rr.point - Vector3.up * 1, flightRunnerMovementSettings.lr.point - Vector3.up * 1) +
                  Vector3.Cross(flightRunnerMovementSettings.lr.point - Vector3.up * 1, flightRunnerMovementSettings.lf.point - Vector3.up * 1) +
                  Vector3.Cross(flightRunnerMovementSettings.lf.point - Vector3.up * 1, flightRunnerMovementSettings.rf.point - Vector3.up * 1) +
                  Vector3.Cross(flightRunnerMovementSettings.rf.point - Vector3.up * 1, flightRunnerMovementSettings.rr.point - Vector3.up * 1)
                 ).normalized;
+
+        Debug.DrawRay(tr.position - Vector3.forward * 4.1f - (Vector3.right * 4.1f) + Vector3.up * 1, Vector3.down, Color.green);
+        Debug.DrawRay(tr.position - Vector3.forward * 4.1f + (Vector3.right * 4.1f) + Vector3.up * 1, Vector3.down, Color.green);
+        Debug.DrawRay(tr.position + Vector3.forward * 4.1f - (Vector3.right * 4.1f) + Vector3.up * 1, Vector3.down, Color.green);
+        Debug.DrawRay(tr.position + Vector3.forward * 4.1f + (Vector3.right * 4.1f) + Vector3.up * 1, Vector3.down, Color.green);
 
         flightRunnerMovementSettings.upDir = new Vector3(flightRunnerMovementSettings.upDir.x, tr.up.y, flightRunnerMovementSettings.upDir.z);
         return flightRunnerMovementSettings.upDir;
@@ -1169,17 +1210,40 @@ public class PlayerMovement : MonoBehaviour
         Transform.up = Vector3.Lerp(Transform.up, FlightRunner_GetSlope(Transform), flightRunnerMovementSettings.tiltLerpValue);
     }
 
+    bool V_IsFlightRunnerBoost;
     private void FlightRunner_MoveRigidBody()
     {
         if (flightRunnerMovementSettings.V_IsGrounded)
         {
             //Flight Runner Ground Movement
-            RigidBody.velocity = (FlightRunnerObjectComponents.HeadingObject.transform.forward * flightRunnerMovementSettings.V_AccelMag);
+            if (V_IsFlightRunnerBoost)
+            {
+                //RigidBody.velocity = (FlightRunnerObjectComponents.HeadingObject.transform.forward * flightRunnerMovementSettings.V_AccelMag + Transform.up * flightRunnerMovementSettings.P_Gravity);
+                //flightRunnerMovementSettings.V_AccelMag += flightRunnerMovementSettings.P_Gravity * Time.deltaTime;
+                flightRunnerMovementSettings.V_AccelMag = Mathf.Min(flightRunnerMovementSettings.V_AccelMag += 200 * Time.deltaTime, 50);
+                
+                RigidBody.velocity = (FlightRunnerObjectComponents.HeadingObject.transform.forward * flightRunnerMovementSettings.V_AccelMag);
+            }
+            else
+            {
+                RigidBody.velocity = (FlightRunnerObjectComponents.HeadingObject.transform.forward * flightRunnerMovementSettings.V_AccelMag);
+            }
         }
         else
         {
             //Flight Runner Air Movement
-            RigidBody.velocity = (FlightRunnerObjectComponents.HeadingObject.transform.forward * flightRunnerMovementSettings.V_AccelMag - Transform.up * flightRunnerMovementSettings.P_Gravity);
+            if (V_IsFlightRunnerBoost)
+            {
+                //RigidBody.velocity = (FlightRunnerObjectComponents.HeadingObject.transform.forward * flightRunnerMovementSettings.V_AccelMag + Transform.up * flightRunnerMovementSettings.P_Gravity);
+                flightRunnerMovementSettings.V_AccelMag = Mathf.Min(flightRunnerMovementSettings.V_AccelMag += 200 * Time.deltaTime, 50);
+                //RigidBody.velocity = (FlightRunnerObjectComponents.HeadingObject.transform.forward * flightRunnerMovementSettings.V_AccelMag - Transform.up * flightRunnerMovementSettings.P_Gravity/4);
+                RigidBody.velocity = (FlightRunnerObjectComponents.HeadingObject.transform.forward * flightRunnerMovementSettings.V_AccelMag);
+            }
+            else
+            {
+                //RigidBody.velocity = (FlightRunnerObjectComponents.HeadingObject.transform.forward * flightRunnerMovementSettings.V_AccelMag - Transform.up * flightRunnerMovementSettings.P_Gravity);
+                RigidBody.velocity = (FlightRunnerObjectComponents.HeadingObject.transform.forward * flightRunnerMovementSettings.V_AccelMag - Transform.up * V_GravityValue);
+            }
         }
     }
 

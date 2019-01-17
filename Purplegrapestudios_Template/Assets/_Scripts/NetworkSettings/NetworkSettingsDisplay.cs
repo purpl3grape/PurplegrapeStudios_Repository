@@ -148,7 +148,7 @@ public class NetworkSettingsDisplay : MonoBehaviour {
 
     public void InitNetworkSettings()
     {
-        _predictionMultiplierValue = 30f;
+        _predictionMultiplierValue = 60f;
         NetworkSettingsDisplay.Instance.PredictionMultiplierSlider.value = PredictionMultiplierValue;
         NetworkSettingsDisplay.Instance.Text_PredictionMultiplier.text = PredictionMultiplierValue.ToString();
 
@@ -156,7 +156,7 @@ public class NetworkSettingsDisplay : MonoBehaviour {
         NetworkSettingsDisplay.Instance.VelocityMultiplierSlider.value = VelocityMultiplierValue;
         NetworkSettingsDisplay.Instance.Text_VelocityMultiplier.text = VelocityMultiplierValue.ToString();
 
-        _syncMultiplierValue = 30;
+        _syncMultiplierValue = 60;
         NetworkSettingsDisplay.Instance.syncMultiplierSlider.value = _syncMultiplierValue;
         NetworkSettingsDisplay.Instance.Text_syncMultiplier.text = SyncMultiplierValue.ToString();
 
