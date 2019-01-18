@@ -1396,7 +1396,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0.00023804439}
+  m_AnchoredPosition: {x: 0, y: 0.00011573038}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &134083684
@@ -4539,7 +4539,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 44137904}
   m_HandleRect: {fileID: 44137903}
   m_Direction: 2
-  m_Value: 0
+  m_Value: 1
   m_Size: 0.99999994
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -12782,7 +12782,7 @@ MonoBehaviour:
   - {x: 1, y: 1}
   NumberOfSubdivisions: 2
   YIsUpAxis: 0
-  RecreateCellHierarchy: 0
+  RecreateCellHierarchy: 1
 --- !u!4 &1090550711
 Transform:
   m_ObjectHideFlags: 0
@@ -14627,7 +14627,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 349898499}
   m_HandleRect: {fileID: 349898498}
   m_Direction: 2
-  m_Value: 0.5
+  m_Value: 0.5000002
   m_Size: 0.5360656
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -17835,7 +17835,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1494517108}
   m_HandleRect: {fileID: 1494517107}
   m_Direction: 2
-  m_Value: 0.9999996
+  m_Value: 0.9999988
   m_Size: 0.7266667
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -18998,7 +18998,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1658790155}
   m_LocalRotation: {x: 0.40821788, y: -0.23456968, z: 0.10938163, w: 0.8754261}
-  m_LocalPosition: {x: 96.641304, y: -30.35, z: -90}
+  m_LocalPosition: {x: 27.34, y: -30.35, z: -90}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1700836907}
@@ -19727,7 +19727,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 1614133048}
   m_Direction: 0
   m_Value: 0
-  m_Size: 0.99999994
+  m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -20703,7 +20703,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -0.000033462307, y: 0.000035696263}
+  m_AnchoredPosition: {x: -0.000033462307, y: -0.0002743318}
   m_SizeDelta: {x: -3.637979e-12, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1792149547
@@ -21043,8 +21043,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1387386072}
   m_HandleRect: {fileID: 1387386071}
   m_Direction: 0
-  m_Value: 1
-  m_Size: 1
+  m_Value: 0
+  m_Size: 0.99999994
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -22227,7 +22227,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1815075046}
   m_HandleRect: {fileID: 1815075045}
   m_Direction: 0
-  m_Value: 1
+  m_Value: 0
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:

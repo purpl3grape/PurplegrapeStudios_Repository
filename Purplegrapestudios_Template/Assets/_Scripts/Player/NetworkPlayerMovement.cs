@@ -20,7 +20,10 @@ public class NetworkPlayerMovement : Photon.MonoBehaviour
     [HideInInspector] public MovementType NetworkMovementType;              //PlayerAnimation.cs uses this variable: Player Movement Type, (More to come)
 
     //FlightRunner Received Variables for Interpolating Movement
-    private Quaternion NetworkPlayerHeadingRotation = Quaternion.identity;
+    private Quaternion NetworkHeadingRotation = Quaternion.identity;
+    private float NetworkSteeringMag;
+    private float NetworkAccelMag;
+    private bool NetworkIsFourWheelDrive;
 
     //Shared Interpolating Movement Variables: Progress, Position
     private Vector3 NetworkStartPosition = Vector3.zero;          //Determining Move Interpolation Progress
@@ -39,6 +42,10 @@ public class NetworkPlayerMovement : Photon.MonoBehaviour
     private float progress = 0f;
     private float lerpValue;
     private bool gotFirstUpdate = false;
+
+    private float SmoothSteeringMag;
+    private float SmoothAccelMag;
+    private float SmoothHeadingRotation;
 
     //Variables for Player to adjust network synchronization values
     private float velocityPredictionValue;  //Obtained values from NetworkSettingsDisplay.cs
@@ -155,7 +162,7 @@ public class NetworkPlayerMovement : Photon.MonoBehaviour
             }
             else if (SpawnCharacterType.Equals(SpawnCharacterType.FlightRunner))
             {
-                SmoothMoove(NetworkPlayerPosition, NetworkPlayerRotation, NetworkPlayerHeadingRotation);
+                SmoothMoove(NetworkPlayerPosition, NetworkPlayerRotation, NetworkHeadingRotation);
             }
         }
 
@@ -231,7 +238,7 @@ public class NetworkPlayerMovement : Photon.MonoBehaviour
                 Transform.rotation = NetworkPlayerRotation;
                 if (SpawnCharacterType.Equals(SpawnCharacterType.FlightRunner))
                 {
-                    FlightRunnerObjectComponents.HeadingObject.transform.rotation = NetworkPlayerHeadingRotation;
+                    FlightRunnerObjectComponents.HeadingObject.transform.rotation = NetworkHeadingRotation;
                 }
                 gotFirstUpdate = true;
             }
@@ -271,6 +278,10 @@ public class NetworkPlayerMovement : Photon.MonoBehaviour
         stream.SendNext(Transform.rotation);
         stream.SendNext(FlightRunnerObjectComponents.HeadingObject.transform.rotation);
         stream.SendNext(Rigidbody.velocity);
+
+        stream.SendNext(PlayerMovement.flightRunnerMovementSettings.V_SteerMag);
+        stream.SendNext(PlayerMovement.flightRunnerMovementSettings.V_AccelMag);
+        stream.SendNext(PlayerMovement.flightRunnerMovementSettings.V_IsFourWheelDrive);
     }
 
     private void FlightRunnerReceiveSerializeStream(PhotonStream stream, PhotonMessageInfo info)
@@ -278,8 +289,13 @@ public class NetworkPlayerMovement : Photon.MonoBehaviour
         //NetworkSpawnCharacterType = (SpawnCharacterType)stream.ReceiveNext();
         NetworkPlayerPosition = (Vector3)stream.ReceiveNext();
         NetworkPlayerRotation = (Quaternion)stream.ReceiveNext();
-        NetworkPlayerHeadingRotation = (Quaternion)stream.ReceiveNext();
+        NetworkHeadingRotation = (Quaternion)stream.ReceiveNext();
         NetworkPlayerVelocity = (Vector3)stream.ReceiveNext();
+
+        NetworkSteeringMag = (float)stream.ReceiveNext();
+        NetworkAccelMag = (float)stream.ReceiveNext();
+        NetworkIsFourWheelDrive = (bool)stream.ReceiveNext();
+
     }
 
     private void SmoothMoove(Vector3 NetworkPosition, Quaternion NetworkRotation, Quaternion NetworkHeadingRotation)
@@ -318,7 +334,8 @@ public class NetworkPlayerMovement : Photon.MonoBehaviour
             {
                 Rigidbody.position = NetworkPosition;
                 Rigidbody.rotation = NetworkRotation;
-                FlightRunnerObjectComponents.HeadingObject.transform.rotation = NetworkPlayerHeadingRotation;
+                FlightRunnerObjectComponents.HeadingObject.transform.rotation = this.NetworkHeadingRotation;
+                SmoothMove_FlightRunnerWheelsAndBooster();
             }
             //Or a more aggressive smoothing move
 
@@ -338,8 +355,9 @@ public class NetworkPlayerMovement : Photon.MonoBehaviour
                     else if (SpawnCharacterType.Equals(SpawnCharacterType.FlightRunner))
                     {
                         Rigidbody.position = Vector3.Lerp(Rigidbody.position, NetworkPosition, lerpValue);
-                        Rigidbody.rotation = Quaternion.Lerp(Rigidbody.rotation, NetworkRotation, syncTime / syncDelay);
-                        FlightRunnerObjectComponents.HeadingObject.transform.rotation = Quaternion.Lerp(FlightRunnerObjectComponents.HeadingObject.transform.rotation, NetworkPlayerHeadingRotation, syncTime / syncDelay);
+                        //Rigidbody.position = NetworkPosition;
+                        SmoothMove_FlightRunnerHeading();
+                        SmoothMove_FlightRunnerWheelsAndBooster();
                     }
 
                     exponentialMultiplier = Mathf.Clamp(Vector3.Distance(Transform.position, NetworkPosition), 0.0001f, 1);
@@ -352,6 +370,7 @@ public class NetworkPlayerMovement : Photon.MonoBehaviour
                         else if (SpawnCharacterType.Equals(SpawnCharacterType.FlightRunner))
                         {
                             Rigidbody.position = Vector3.LerpUnclamped(Rigidbody.position, NetworkPosition, progress * finalSyncMultiplier / exponentialMultiplier);
+                            //Rigidbody.position = NetworkPosition;
                         }
 
                     }
@@ -359,13 +378,14 @@ public class NetworkPlayerMovement : Photon.MonoBehaviour
                     {
                         heightLerp = Transform.position.y;
                         heightLerp = Mathf.Lerp(Transform.position.y, NetworkPosition.y, syncYAxisValue);
-                        HeightAdjustmentVector = new Vector3(Transform.position.x, heightLerp, Transform.position.z);
                         if (SpawnCharacterType.Equals(SpawnCharacterType.Player))
                         {
+                            HeightAdjustmentVector = new Vector3(Transform.position.x, heightLerp, Transform.position.z);
                             Transform.position = HeightAdjustmentVector;
                         }
                         else if (SpawnCharacterType.Equals(SpawnCharacterType.FlightRunner))
                         {
+                            HeightAdjustmentVector = new Vector3(Rigidbody.position.x, heightLerp, Rigidbody.position.z);
                             Rigidbody.position = HeightAdjustmentVector;
                         }
                     }
@@ -375,13 +395,13 @@ public class NetworkPlayerMovement : Photon.MonoBehaviour
                     if (SpawnCharacterType.Equals(SpawnCharacterType.Player))
                     {
                         Transform.position = NetworkPosition;
-                        Transform.rotation = NetworkRotation;
+                        Transform.rotation = Quaternion.Lerp(Transform.rotation, NetworkRotation, syncTime / syncDelay);
                     }
                     else if (SpawnCharacterType.Equals(SpawnCharacterType.FlightRunner))
                     {
                         Rigidbody.position = NetworkPosition;
-                        Rigidbody.rotation = NetworkRotation;
-                        FlightRunnerObjectComponents.HeadingObject.transform.rotation = NetworkPlayerHeadingRotation;
+                        SmoothMove_FlightRunnerHeading();
+                        SmoothMove_FlightRunnerWheelsAndBooster();
                     }
                 }
             }
@@ -409,13 +429,52 @@ public class NetworkPlayerMovement : Photon.MonoBehaviour
                 else if (SpawnCharacterType.Equals(SpawnCharacterType.FlightRunner))
                 {
                     Rigidbody.position = Vector3.Lerp(Rigidbody.position, NetworkPosition, progress);
-                    Rigidbody.rotation = Quaternion.Lerp(Rigidbody.rotation, NetworkRotation, syncTime / syncDelay);
-                    FlightRunnerObjectComponents.HeadingObject.transform.rotation = Quaternion.Lerp(FlightRunnerObjectComponents.HeadingObject.transform.rotation, NetworkPlayerHeadingRotation, syncTime / syncDelay);
+                    SmoothMove_FlightRunnerHeading();
+                    SmoothMove_FlightRunnerWheelsAndBooster();
                 }
             }
         }
 
         NetworkCurrentPosition = Transform.position;
+
+    }
+
+    private void SmoothMove_FlightRunnerHeading()
+    {
+        Rigidbody.rotation = Quaternion.Lerp(Rigidbody.rotation, NetworkPlayerRotation, syncTime / syncDelay);
+        FlightRunnerObjectComponents.HeadingObject.transform.rotation = Quaternion.Lerp(FlightRunnerObjectComponents.HeadingObject.transform.rotation, this.NetworkHeadingRotation, syncTime / syncDelay);
+    }
+
+    private void SmoothMove_FlightRunnerWheelsAndBooster()
+    {
+        SmoothSteeringMag = Mathf.Lerp(SmoothSteeringMag, NetworkSteeringMag, syncTime / syncDelay);
+        SmoothAccelMag = Mathf.Lerp(SmoothAccelMag, NetworkAccelMag, syncTime / syncDelay);
+        //Rotate Wheels based on Steering (Networked)
+        foreach (GameObject Axel in FlightRunnerObjectComponents.Axel_Front)
+        {
+            Axel.transform.localRotation = Quaternion.Euler(0, SmoothSteeringMag, 0);
+        }
+        if (NetworkIsFourWheelDrive)
+        {
+            foreach (GameObject Axel in FlightRunnerObjectComponents.Axel_Rear)
+            {
+                Axel.transform.localRotation = Quaternion.Euler(0, -SmoothSteeringMag, 0);
+            }
+        }
+        //Spin Wheels (Networked)
+        foreach (GameObject Wheel in FlightRunnerObjectComponents.Wheels_Front)
+        {
+            Wheel.transform.rotation *= Quaternion.Euler(0, SmoothAccelMag * .35f, 0);
+        }
+        foreach (GameObject Wheel in FlightRunnerObjectComponents.Wheels_Rear)
+        {
+            Wheel.transform.rotation *= Quaternion.Euler(0, SmoothAccelMag * .35f, 0);
+        }
+
+        foreach(GameObject Blade in FlightRunnerObjectComponents.BoosterBlades)
+        {
+            Blade.transform.rotation *= Quaternion.Euler(0, SmoothAccelMag * .7f + 5, 0);
+        }
 
     }
 

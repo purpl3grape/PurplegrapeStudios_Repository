@@ -647,9 +647,14 @@ MonoBehaviour:
     V_Gear: 0
     V_AccelMag: 0
     V_BreakMag: 0
+    V_IsFlightRunnerBoost: 0
     V_IsFourWheelDrive: 0
+    V_SteerMag: 0
     tiltLerpValue: 0
     V_IsGrounded: 0
+    V_IsCollision: 0
+    V_Velocity: {x: 0, y: 0, z: 0}
+    V_SpeedReduction: {x: 0, y: 0, z: 0}
 --- !u!114 &6567444235280337739
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -664,6 +669,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   MainCamera: {fileID: 4253303299460216}
   HeadingObject: {fileID: 1052193959236816}
+  HeadingRigidbody: {fileID: 0}
   Wheels_Front:
   - {fileID: 1832127194364608}
   - {fileID: 1873666694656770}
@@ -679,6 +685,7 @@ MonoBehaviour:
   BoosterBlades:
   - {fileID: 1387971369566714}
   - {fileID: 1341819954120350}
+  FlightRunnerLight: {fileID: 0}
 --- !u!114 &2047758958882526636
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -702,8 +709,8 @@ MonoBehaviour:
   ObservedComponents:
   - {fileID: 4001021864993260880}
   ObservedComponentsFoldoutOpen: 1
-  viewIdField: 3
-  instantiationId: 3
+  viewIdField: 0
+  instantiationId: -1
   currentMasterID: -1
   isRuntimeInstantiated: 0
 --- !u!114 &5138394717618163148

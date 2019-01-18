@@ -6,11 +6,13 @@ public class FlightRunnerObjectComponents : MonoBehaviour
 {
     public Transform MainCamera;
     public GameObject HeadingObject;
+    public Rigidbody HeadingRigidbody;
     public GameObject[] Wheels_Front;
     public GameObject[] Wheels_Rear;
     public GameObject[] Axel_Front;
     public GameObject[] Axel_Rear;
     public GameObject[] BoosterBlades;
+    public GameObject FlightRunnerLight;
 
     void Start()
     {

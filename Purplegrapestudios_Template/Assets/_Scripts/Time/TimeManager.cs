@@ -132,12 +132,12 @@ public class TimeManager : Photon.PunBehaviour {
         if (time < 43200)
         {
             intensity = 1 - (43200 - time) / 43200;
-            playerLightIntensity = ((43200 - time) / 43200 * 3);
+            playerLightIntensity = ((43200 - time) / 43200 * 6);
         }
         else
         {
             intensity = 1 - ((43200 - time) / 43200 * -1);
-            playerLightIntensity = (43200 - time) / 43200 * -1 * 3;
+            playerLightIntensity = (43200 - time) / 43200 * -1 * 6;
         }
 
 

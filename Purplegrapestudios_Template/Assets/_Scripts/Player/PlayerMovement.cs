@@ -42,7 +42,7 @@ public class PlayerMovement : MonoBehaviour
     /// </summary>
     private Transform Transform;
     private Transform MainCameraTransform;
-    private Rigidbody RigidBody;
+    private Rigidbody Rigidbody;
     private PhotonView PhotonView;
     /// <summary>
     /// Player Specific Components
@@ -150,13 +150,21 @@ public class PlayerMovement : MonoBehaviour
         [HideInInspector] public RaycastHit rf;
         [HideInInspector] public Vector3 upDir;
 
+        [HideInInspector] public Ray V_Ray_Velocity;
         [HideInInspector] public int V_Gear;
         [HideInInspector] public float V_AccelMag;
         [HideInInspector] public float V_BreakMag;
+        [HideInInspector] public bool V_IsFlightRunnerBoost;
         [HideInInspector] public bool V_IsFourWheelDrive;
+        [HideInInspector] public float V_SteerMag;
         [HideInInspector] public float tiltLerpValue;
-        public bool V_IsGrounded;
-       
+        [HideInInspector] public bool V_IsGrounded;
+        [HideInInspector] public bool V_IsCollision;
+        [HideInInspector] public Vector3 V_Velocity;
+        [HideInInspector] public RaycastHit[] V_WallHits;
+        [HideInInspector] public Vector3 V_SpeedReduction;
+
+
     }
     public FlightRunnerMovementSettings flightRunnerMovementSettings;
 
@@ -190,7 +198,7 @@ public class PlayerMovement : MonoBehaviour
     private void Start()
     {
         PhotonView = GetComponent<PhotonView>();
-        RigidBody = GetComponent<Rigidbody>();
+        Rigidbody = GetComponent<Rigidbody>();
         Transform = GetComponent<Transform>();
 
         // Player / Flight Runner Specifics
@@ -224,6 +232,7 @@ public class PlayerMovement : MonoBehaviour
             flightRunnerCmd.gearNumber = 1;
             flightRunnerMovementSettings.V_Gear = flightRunnerCmd.gearNumber;
             flightRunnerMovementSettings.V_GroundHits = new RaycastHit[255];
+            flightRunnerMovementSettings.V_WallHits = new RaycastHit[255];
             FlighRunnerInputType = FlightRunnerInputType.MouseAndKeyboard;
             FlightRunnerDriveType = FlightRunnerDriveType.TwoWheel;
 
@@ -319,9 +328,9 @@ public class PlayerMovement : MonoBehaviour
         /* MOVEMENT PLAYER: here's the important part*/
         if (SpawnCharacterType.Equals(SpawnCharacterType.Player))
         {
-            if (RigidBody.velocity.magnitude > 0) { RigidBody.velocity = Vector3.zero; }
+            if (Rigidbody.velocity.magnitude > 0) { Rigidbody.velocity = Vector3.zero; }
 
-            RigidBody.MovePosition(RigidBody.position + playerMovementSettings.V_PlayerVelocity * Time.fixedDeltaTime);
+            Rigidbody.MovePosition(Rigidbody.position + playerMovementSettings.V_PlayerVelocity * Time.fixedDeltaTime);
         }
 
         /* MOVEMENT Flight Runner: here's the important part*/
@@ -981,7 +990,7 @@ public class PlayerMovement : MonoBehaviour
 
         flightRunnerCmd.accelPedal = Input.GetAxis("GasInput");
         flightRunnerCmd.breakPedal = Input.GetAxis("BreakInput");
-        flightRunnerCmd.steeringWheel = Input.GetAxis("SteeringInput") * 30;
+        flightRunnerMovementSettings.V_SteerMag = flightRunnerCmd.steeringWheel = Input.GetAxis("SteeringInput") * 30;
 
         if (Input.GetButton("Gear1Input"))
         {
@@ -1010,11 +1019,11 @@ public class PlayerMovement : MonoBehaviour
 
         if (Input.GetKey(KeyCode.Space))
         {
-            V_IsFlightRunnerBoost = true;
+            flightRunnerMovementSettings.V_IsFlightRunnerBoost = true;
             V_BoostTimer = 0;
         }
 
-        if (V_IsFlightRunnerBoost)
+        if (flightRunnerMovementSettings.V_IsFlightRunnerBoost)
         {
             if (V_BoostTimer < .25f)
             {
@@ -1027,7 +1036,7 @@ public class PlayerMovement : MonoBehaviour
             else
             {
                 V_BoostTimer = 0;
-                V_IsFlightRunnerBoost = false;
+                flightRunnerMovementSettings.V_IsFlightRunnerBoost = false;
             }
         }
 
@@ -1045,10 +1054,14 @@ public class PlayerMovement : MonoBehaviour
             if (FlightRunnerDriveType.Equals(FlightRunnerDriveType.TwoWheel))
             {
                 FlightRunnerDriveType = FlightRunnerDriveType.FourWheel;
+                flightRunnerMovementSettings.V_IsFourWheelDrive = true;
+                //UpdateDriveType(FlightRunnerDriveType.FourWheel);
             }
             else if (FlightRunnerDriveType.Equals(FlightRunnerDriveType.FourWheel))
             {
                 FlightRunnerDriveType = FlightRunnerDriveType.TwoWheel;
+                flightRunnerMovementSettings.V_IsFourWheelDrive = false;
+                //UpdateDriveType(FlightRunnerDriveType.TwoWheel);
                 foreach (GameObject Wheel in FlightRunnerObjectComponents.Axel_Rear)
                 {
                     Wheel.transform.localRotation = Quaternion.Euler(0, 0, 0);
@@ -1210,41 +1223,82 @@ public class PlayerMovement : MonoBehaviour
         Transform.up = Vector3.Lerp(Transform.up, FlightRunner_GetSlope(Transform), flightRunnerMovementSettings.tiltLerpValue);
     }
 
-    bool V_IsFlightRunnerBoost;
     private void FlightRunner_MoveRigidBody()
     {
+        //FlightRunner_DetectCollision(8);
+
         if (flightRunnerMovementSettings.V_IsGrounded)
         {
             //Flight Runner Ground Movement
-            if (V_IsFlightRunnerBoost)
+            if (flightRunnerMovementSettings.V_IsFlightRunnerBoost)
             {
                 //RigidBody.velocity = (FlightRunnerObjectComponents.HeadingObject.transform.forward * flightRunnerMovementSettings.V_AccelMag + Transform.up * flightRunnerMovementSettings.P_Gravity);
                 //flightRunnerMovementSettings.V_AccelMag += flightRunnerMovementSettings.P_Gravity * Time.deltaTime;
                 flightRunnerMovementSettings.V_AccelMag = Mathf.Min(flightRunnerMovementSettings.V_AccelMag += 200 * Time.deltaTime, 50);
                 
-                RigidBody.velocity = (FlightRunnerObjectComponents.HeadingObject.transform.forward * flightRunnerMovementSettings.V_AccelMag);
+                Rigidbody.velocity = (FlightRunnerObjectComponents.HeadingObject.transform.forward * flightRunnerMovementSettings.V_AccelMag);
             }
             else
             {
-                RigidBody.velocity = (FlightRunnerObjectComponents.HeadingObject.transform.forward * flightRunnerMovementSettings.V_AccelMag);
+                Rigidbody.velocity = (FlightRunnerObjectComponents.HeadingObject.transform.forward * flightRunnerMovementSettings.V_AccelMag);
             }
         }
         else
         {
             //Flight Runner Air Movement
-            if (V_IsFlightRunnerBoost)
+            if (flightRunnerMovementSettings.V_IsFlightRunnerBoost)
             {
                 //RigidBody.velocity = (FlightRunnerObjectComponents.HeadingObject.transform.forward * flightRunnerMovementSettings.V_AccelMag + Transform.up * flightRunnerMovementSettings.P_Gravity);
                 flightRunnerMovementSettings.V_AccelMag = Mathf.Min(flightRunnerMovementSettings.V_AccelMag += 200 * Time.deltaTime, 50);
                 //RigidBody.velocity = (FlightRunnerObjectComponents.HeadingObject.transform.forward * flightRunnerMovementSettings.V_AccelMag - Transform.up * flightRunnerMovementSettings.P_Gravity/4);
-                RigidBody.velocity = (FlightRunnerObjectComponents.HeadingObject.transform.forward * flightRunnerMovementSettings.V_AccelMag);
+                Rigidbody.velocity = (FlightRunnerObjectComponents.HeadingObject.transform.forward * flightRunnerMovementSettings.V_AccelMag);
             }
             else
             {
                 //RigidBody.velocity = (FlightRunnerObjectComponents.HeadingObject.transform.forward * flightRunnerMovementSettings.V_AccelMag - Transform.up * flightRunnerMovementSettings.P_Gravity);
-                RigidBody.velocity = (FlightRunnerObjectComponents.HeadingObject.transform.forward * flightRunnerMovementSettings.V_AccelMag - Transform.up * V_GravityValue);
+                Rigidbody.velocity = (FlightRunnerObjectComponents.HeadingObject.transform.forward * flightRunnerMovementSettings.V_AccelMag - Transform.up * V_GravityValue);
             }
         }
+    }
+
+
+    private void FlightRunner_DetectCollision(float dist)
+    {
+        flightRunnerMovementSettings.V_Velocity = Rigidbody.velocity;
+
+        flightRunnerMovementSettings.V_Ray_Velocity = new Ray(Rigidbody.position, flightRunnerMovementSettings.V_Velocity);
+        Debug.DrawRay(Rigidbody.position, flightRunnerMovementSettings.V_Velocity, Color.red);
+        flightRunnerMovementSettings.V_SpeedReduction = Vector3.zero;
+
+        flightRunnerMovementSettings.V_IsCollision = false;
+
+        if (Physics.RaycastNonAlloc(flightRunnerMovementSettings.V_Ray_Velocity, flightRunnerMovementSettings.V_WallHits, dist, RayCastLayersToHit) > 0)
+        {
+            foreach (RaycastHit collisionHit in flightRunnerMovementSettings.V_WallHits)
+            {
+                if (collisionHit.collider == null) continue;
+
+                if (collisionHit.transform.CompareTag(S_Level) || 1==1)
+                {
+                    flightRunnerMovementSettings.V_SpeedReduction = collisionHit.normal;
+                    float xMag = Mathf.Abs(flightRunnerMovementSettings.V_Velocity.x);
+                    float yMag = Mathf.Abs(flightRunnerMovementSettings.V_Velocity.y);
+                    float zMag = Mathf.Abs(flightRunnerMovementSettings.V_Velocity.z);
+
+                    flightRunnerMovementSettings.V_SpeedReduction.x = flightRunnerMovementSettings.V_SpeedReduction.x * xMag * 1.5f;
+                    flightRunnerMovementSettings.V_SpeedReduction.z = flightRunnerMovementSettings.V_SpeedReduction.z * zMag * 1.5f;
+
+                    flightRunnerMovementSettings.V_Velocity.x += flightRunnerMovementSettings.V_SpeedReduction.x;
+                    flightRunnerMovementSettings.V_Velocity.z += flightRunnerMovementSettings.V_SpeedReduction.z;
+                    flightRunnerMovementSettings.V_IsCollision = true;
+
+                    flightRunnerMovementSettings.V_AccelMag /= 2;
+                }
+
+            }
+        }
+
+        Rigidbody.velocity = flightRunnerMovementSettings.V_Velocity;
     }
 
     /// <summary>
@@ -1303,9 +1357,43 @@ public class PlayerMovement : MonoBehaviour
     /// <param name="senderId"></param>
     private void PhotonNetwork_OnEventCall(byte eventCode, object content, int senderId)
     {
+        PhotonEventCodes code = (PhotonEventCodes)eventCode;
+
+        if (code.Equals(PhotonEventCodes.UpdateDriveType))
+        {
+            object[] datas = content as object[];
+            if (datas.Length.Equals(4))
+            {
+                UpdateDriveType((FlightRunnerDriveType)datas[0]);
+            }
+        }
     }
 
+    private void FlightRunnerDriveType_Event(FlightRunnerDriveType driveType)
+    {
+        object[] datas = new object[] { driveType };
 
+        if (PhotonNetwork.offlineMode)
+        {
+            UpdateDriveType(driveType);
+        }
+        else
+        {
+            RaiseEventOptions options = new RaiseEventOptions()
+            {
+                CachingOption = EventCaching.DoNotCache,
+                Receivers = ReceiverGroup.All
+            };
+
+            PhotonNetwork.RaiseEvent((byte)PhotonEventCodes.UpdateDriveType, datas, true, options);
+
+        }
+    }
+
+    private void UpdateDriveType(FlightRunnerDriveType driveType)
+    {
+        FlightRunnerDriveType = driveType;
+    }
 
     //SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS
     //SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS

@@ -32,7 +32,7 @@ public enum PhotonEventCodes
     SetBulletParticleHitPointEvent = 15,
     BallMovement = 16,
     ColorChange = 17,
-    ChangeMovementType = 18,
+    UpdateDriveType = 18,
     DustFX = 19,
 }
 
@@ -364,6 +364,7 @@ public class EventManager : MonoBehaviour
 
 
         playerObjectComponents.PlayerCamera.SetActive(true);
+        playerObjectComponents.PlayerLight.GetComponent<Light>().enabled = true;
         playerObjectComponents.FirstPersonPlayer.SetActive(true);
 
         player.layer = LayerMask.NameToLayer("LocalPlayer");
@@ -399,8 +400,8 @@ public class EventManager : MonoBehaviour
         }
 
         FlightRunnerObjectComponents.MainCamera.gameObject.SetActive(true);
+        FlightRunnerObjectComponents.FlightRunnerLight.GetComponent<Light>().enabled = true;
 
-        FlightRunner.GetComponent<NetworkPlayerMovement>().SpawnCharacterType = SpawnCharacterType.FlightRunner;
         FlightRunner.GetComponent<Rigidbody>().isKinematic = false;
         FlightRunnerObjectComponents.HeadingObject.GetComponent<Rigidbody>().isKinematic = false;
 
