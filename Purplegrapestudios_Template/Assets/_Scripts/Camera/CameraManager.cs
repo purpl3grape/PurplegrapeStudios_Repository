@@ -46,6 +46,7 @@ public class CameraManager : MonoBehaviour {
                 spectateMode = SpectateMode.Free;
                 PlayerCamera.SetActive(false);
                 SpectatorCamera.SetActive(true);
+
                 if (MoveSpectatorCamera != null) { StopCoroutine(MoveSpectatorCamera); }
                 MoveSpectatorCamera = StartCoroutine(C_MoveInTime(PlayerObject.transform.position + transform.up * 2 - transform.forward * 5));
             }
@@ -84,24 +85,28 @@ public class CameraManager : MonoBehaviour {
         {
             if (InputManager.Instance.GetKey(InputCode.Forward))
             {
-                SpectatorCapsule.transform.position += SpectatorCamera.transform.forward * 40 * Time.deltaTime;
+                SpectatorCapsule.transform.position += SpectatorCamera.transform.forward * 20 * Time.deltaTime;
             }
             else if (InputManager.Instance.GetKey(InputCode.Back))
             {
-                SpectatorCapsule.transform.position -= SpectatorCamera.transform.forward * 40 * Time.deltaTime;
+                SpectatorCapsule.transform.position -= SpectatorCamera.transform.forward * 20 * Time.deltaTime;
             }
             if (InputManager.Instance.GetKey(InputCode.Right))
             {
-                SpectatorCapsule.transform.position += SpectatorCapsule.transform.right * 40 * Time.deltaTime;
+                SpectatorCapsule.transform.position += SpectatorCapsule.transform.right * 20 * Time.deltaTime;
             }
             else if (InputManager.Instance.GetKey(InputCode.Left))
             {
-                SpectatorCapsule.transform.position -= SpectatorCapsule.transform.right * 40 * Time.deltaTime;
+                SpectatorCapsule.transform.position -= SpectatorCapsule.transform.right * 20 * Time.deltaTime;
             }
 
-            if (InputManager.Instance.GetKey(InputCode.Jump))
+            if (InputManager.Instance.GetKey(InputCode.Jump) || InputManager.Instance.GetKey(InputCode.Shoot))
             {
-                SpectatorCapsule.transform.position += SpectatorCapsule.transform.up * 40 * Time.deltaTime;
+                SpectatorCapsule.transform.position += SpectatorCapsule.transform.up * 20 * Time.deltaTime;
+            }
+            else if (InputManager.Instance.GetKey(InputCode.Aim))
+            {
+                SpectatorCapsule.transform.position -= SpectatorCapsule.transform.up * 20 * Time.deltaTime;
             }
         }
 
@@ -146,11 +151,16 @@ public class CameraManager : MonoBehaviour {
         return Mathf.Clamp(angle, min, max);
     }
 
-    IEnumerator C_MoveInTime(Vector3 targetVec)
+    IEnumerator C_MoveInTime(Vector3 targetPos)
     {
-        while (Vector3.Distance(SpectatorCapsule.transform.position, targetVec) > 0.05f)
+        while (Vector3.Distance(SpectatorCapsule.transform.position, targetPos) > 0.05f && 
+            !InputManager.Instance.GetKey(InputCode.Forward) &&
+            !InputManager.Instance.GetKey(InputCode.Back) &&
+            !InputManager.Instance.GetKey(InputCode.Left) &&
+            !InputManager.Instance.GetKey(InputCode.Right) &&
+            !InputManager.Instance.GetKey(InputCode.Jump))
         {
-            SpectatorCapsule.transform.position = Vector3.Lerp(SpectatorCapsule.transform.position, targetVec, smoothing * Time.fixedDeltaTime);
+            SpectatorCapsule.transform.position = Vector3.Lerp(SpectatorCapsule.transform.position, targetPos, smoothing * Time.fixedDeltaTime);
             yield return null;
         }
         yield break;

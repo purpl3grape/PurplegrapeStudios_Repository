@@ -350,7 +350,7 @@ public class EventManager : MonoBehaviour
     public void SpawnBarry()
     {
         float randomValue = Random.Range(-30f, 30f);
-        player = PhotonNetwork.Instantiate(Path.Combine("Prefabs", "NewPlayer"), new Vector3(randomValue, 120, randomValue), Quaternion.identity, 0);
+        player = PhotonNetwork.Instantiate(Path.Combine("Prefabs", "Barry"), new Vector3(randomValue, 120, randomValue), Quaternion.identity, 0);
         playerObjectComponents = player.GetComponent<PlayerObjectComponents>();
         PlayerViewID = playerObjectComponents.GetComponent<PhotonView>().viewID;
 
@@ -388,7 +388,7 @@ public class EventManager : MonoBehaviour
     public void SpawnFlightRunner()
     {
         float randomValue = Random.Range(-30f, 30f);
-        FlightRunner = PhotonNetwork.Instantiate(Path.Combine("Prefabs", "CarPrefab"), new Vector3(randomValue, 120, randomValue), Quaternion.identity, 0);
+        FlightRunner = PhotonNetwork.Instantiate(Path.Combine("Prefabs", "FlightRunner"), new Vector3(randomValue, 120, randomValue), Quaternion.identity, 0);
         FlightRunnerObjectComponents = FlightRunner.GetComponent<FlightRunnerObjectComponents>();
         FlightRunnerHeading = FlightRunnerObjectComponents.HeadingObject;
         FlightRunnerPhotonView = FlightRunner.GetComponent<PhotonView>();

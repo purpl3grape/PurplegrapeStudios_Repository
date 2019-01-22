@@ -226,7 +226,7 @@ Rigidbody:
   m_IsKinematic: 1
   m_Interpolate: 0
   m_Constraints: 126
-  m_CollisionDetection: 0
+  m_CollisionDetection: 3
 --- !u!1 &1084491468199936
 GameObject:
   m_ObjectHideFlags: 0
@@ -477,7 +477,7 @@ GameObject:
   - component: {fileID: 5138394717618163148}
   - component: {fileID: 4001021864993260880}
   m_Layer: 2
-  m_Name: CarPrefab 1
+  m_Name: FlightRunner
   m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -492,7 +492,7 @@ Transform:
   m_GameObject: {fileID: 1165680260921162}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0.5, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 4, y: 4, z: 4}
   m_Children:
   - {fileID: 4071689955366572}
   m_Father: {fileID: 0}
@@ -571,7 +571,7 @@ Rigidbody:
   m_IsKinematic: 1
   m_Interpolate: 0
   m_Constraints: 112
-  m_CollisionDetection: 0
+  m_CollisionDetection: 3
 --- !u!114 &4579474673094293241
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -591,14 +591,14 @@ MonoBehaviour:
   RayCastLayersToHit:
     serializedVersion: 2
     m_Bits: 16405
-  playerMovementSettings:
+  PMS:
     P_AirAcceleration: 2
-    P_AirControl: 0.3
     P_AirDeacceleration: 2
+    P_AirControl: 0.3
+    P_JumpAttempts: 2
     P_DoubleJumpDeltaTime: 0.25
     P_Friction: 6
     P_Gravity: 20
-    P_JumpAttempts: 2
     P_JumpSpeed: 8
     P_MaxSpeed: 150
     P_MoveScale: 1
@@ -635,11 +635,11 @@ MonoBehaviour:
     V_TempJumpSpeed: 0
     V_TempRampJumpSpeed: 0
     v_GroundHitTransformName: 
-  flightRunnerMovementSettings:
+  FMS:
     P_Gravity: 20
-    P_BreakAccelMultiplier: 0
-    P_AccelMultiplier: 0
-    P_FrictionMultiplier: 0
+    P_BreakAccelMultiplier: 4
+    P_AccelMultiplier: 5
+    P_FrictionMultiplier: 3
     SlopeLayer:
       serializedVersion: 2
       m_Bits: 16384
@@ -669,7 +669,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   MainCamera: {fileID: 4253303299460216}
   HeadingObject: {fileID: 1052193959236816}
-  HeadingRigidbody: {fileID: 0}
+  HeadingRigidbody: {fileID: 54055496924629336}
   Wheels_Front:
   - {fileID: 1832127194364608}
   - {fileID: 1873666694656770}
@@ -685,7 +685,7 @@ MonoBehaviour:
   BoosterBlades:
   - {fileID: 1387971369566714}
   - {fileID: 1341819954120350}
-  FlightRunnerLight: {fileID: 0}
+  FlightRunnerLight: {fileID: 3368074419910503000}
 --- !u!114 &2047758958882526636
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -738,15 +738,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   SpawnCharacterType: 1
+  PlayerCameraTransform: {fileID: 0}
+  NetworkCurrentPosition: {x: 0, y: 0, z: 0}
+  NetworkPlayerRotation: {x: 0, y: 0, z: 0, w: 1}
+  NetworkPlayerPosition: {x: 0, y: 0, z: 0}
   NetworkPlayerVelocity: {x: 0, y: 0, z: 0}
   NetworkPlayerFloorDetected: 0
   NetworkPlayerHealth: 0
   NetworkPlayerAimAngle: 0
   NetworkPlayerCurrentAimAngle: 0
   NetworkMovementType: 0
-  NetworkCurrentPosition: {x: 0, y: 0, z: 0}
-  FlightRunnerObjectComponents: {fileID: 0}
-  PlayerCameraTransform: {fileID: 0}
+  NetworkHeadingRotation: {x: 0, y: 0, z: 0, w: 1}
+  NetworkSteeringMag: 0
+  NetworkAccelMag: 0
+  NetworkIsFourWheelDrive: 0
 --- !u!1 &1167710398551668
 GameObject:
   m_ObjectHideFlags: 0
@@ -2454,7 +2459,7 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3368074419910503000}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 8
   m_Type: 1
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -2471,13 +2476,13 @@ Light:
     m_NormalBias: 0.4
     m_NearPlane: 0.2
   m_Cookie: {fileID: 0}
-  m_DrawHalo: 0
+  m_DrawHalo: 1
   m_Flare: {fileID: 0}
   m_RenderMode: 0
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_Lightmapping: 4
+  m_Lightmapping: 2
   m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1

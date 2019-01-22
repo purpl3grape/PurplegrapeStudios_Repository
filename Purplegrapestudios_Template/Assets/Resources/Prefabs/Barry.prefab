@@ -113,7 +113,7 @@ GameObject:
   - component: {fileID: 114437237585635068}
   - component: {fileID: 114153921843850958}
   m_Layer: 10
-  m_Name: NewPlayer
+  m_Name: Barry
   m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -225,14 +225,14 @@ MonoBehaviour:
   RayCastLayersToHit:
     serializedVersion: 2
     m_Bits: 16403
-  playerMovementSettings:
+  PMS:
     P_AirAcceleration: 60
-    P_AirControl: 0
     P_AirDeacceleration: 60
+    P_AirControl: 0
+    P_JumpAttempts: 2
     P_DoubleJumpDeltaTime: 0.25
     P_Friction: 100
     P_Gravity: 40
-    P_JumpAttempts: 2
     P_JumpSpeed: 25
     P_MaxSpeed: 40
     P_MoveScale: 40
@@ -269,7 +269,7 @@ MonoBehaviour:
     V_TempJumpSpeed: 0
     V_TempRampJumpSpeed: 0
     v_GroundHitTransformName: 
-  flightRunnerMovementSettings:
+  FMS:
     P_Gravity: 0
     P_BreakAccelMultiplier: 0
     P_AccelMultiplier: 0
@@ -302,15 +302,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   SpawnCharacterType: 0
+  PlayerCameraTransform: {fileID: 0}
+  NetworkCurrentPosition: {x: 0, y: 0, z: 0}
+  NetworkPlayerRotation: {x: 0, y: 0, z: 0, w: 1}
+  NetworkPlayerPosition: {x: 0, y: 0, z: 0}
   NetworkPlayerVelocity: {x: 0, y: 0, z: 0}
   NetworkPlayerFloorDetected: 0
   NetworkPlayerHealth: 0
   NetworkPlayerAimAngle: 0
   NetworkPlayerCurrentAimAngle: 0
   NetworkMovementType: 0
-  NetworkCurrentPosition: {x: 0, y: 0, z: 0}
-  FlightRunnerObjectComponents: {fileID: 0}
-  PlayerCameraTransform: {fileID: 0}
+  NetworkHeadingRotation: {x: 0, y: 0, z: 0, w: 1}
+  NetworkSteeringMag: 0
+  NetworkAccelMag: 0
+  NetworkIsFourWheelDrive: 0
 --- !u!114 &114401264883238002
 MonoBehaviour:
   m_ObjectHideFlags: 0

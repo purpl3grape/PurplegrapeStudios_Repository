@@ -276,7 +276,7 @@ public class PlayerAnimation : MonoBehaviour {
 
 
             //MOVEMENT (WHOLE BODY)
-            if (PlayerMovement.playerMovementSettings.V_IsFloorDetected)
+            if (PlayerMovement.PMS.V_IsFloorDetected)
             {
                 //JUMP
                 if (AnimLocal_BOOL_Jump != false)
@@ -285,7 +285,7 @@ public class PlayerAnimation : MonoBehaviour {
                     SetStateBool_3rdPersonJump(AnimLocal_BOOL_Jump);    ///TO SHOW THE ANIMATION (OPTIONAL - FOR DEBUGGING)
                 }
 
-                if (PlayerMovement.playerMovementSettings.V_PlayerVelocity.magnitude > 15)
+                if (PlayerMovement.PMS.V_PlayerVelocity.magnitude > 15)
                 {
                     //RUNNING LOWER BODY
                     if (AnimLocal_INT_LowerBody != 1)
@@ -302,7 +302,7 @@ public class PlayerAnimation : MonoBehaviour {
                         SetStateInt_3rdPersonUpperBody(AnimLocal_INT_UpperBody);    ///TO SHOW THE ANIMATION (OPTIONAL - FOR DEBUGGING)
                     }
                 }
-                else if (PlayerMovement.playerMovementSettings.V_PlayerVelocity.magnitude <= 15 && PlayerMovement.playerMovementSettings.V_PlayerVelocity.magnitude > 0)
+                else if (PlayerMovement.PMS.V_PlayerVelocity.magnitude <= 15 && PlayerMovement.PMS.V_PlayerVelocity.magnitude > 0)
                 {
                     //WALKING LOWER BODY
                     if (AnimLocal_INT_LowerBody != 1)

@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
+#region Movement Specific Enumerations
 public enum MovementType
 {
     Player,
@@ -27,73 +29,85 @@ public enum FlightRunnerDriveType
     TwoWheel,
     FourWheel,
 }
+#endregion
 
 public class PlayerMovement : MonoBehaviour
 {
+    #region Hidden Public Variables
+    //Player / Flight Runner Movement Type Information (Enums)
     [HideInInspector] public MovementType MovementType;
     [HideInInspector] public FlightRunnerInputType FlighRunnerInputType;
     [HideInInspector] public FlightRunnerDriveType FlightRunnerDriveType;
+    #endregion Hidden Public Variables
 
-    public SpawnCharacterType SpawnCharacterType;
-    public LayerMask RayCastLayersToHit;
+    #region Public Variables
+    [Header("Current Spawned Prefab (Player / Flight Runner)")] public SpawnCharacterType SpawnCharacterType;
+    [Header("Layers for Groundcheck (Player / Flight Runner)")] public LayerMask RayCastLayersToHit;
+    [Header("Player Movement Settings")] public PlayerMovementSettings PMS;
+    [Header("Flight Runner Movement Settings")] public FlightRunnerMovementSettings FMS;
+    #endregion Public variables
 
-    /// <summary>
-    /// Basic Components (Player and Car)
-    /// </summary>
+    #region Private Variables
+
+    #region Command Class Instances
+    [Header("Player Commands (Forward, back, jump, etc)")] private Cmd cmd;
+    [Header("Flight Runner Commands (Forward, Steer, etc)")] private FlightRunnerCmd FCmd;
+    #endregion Command Class Instances
+
+    #region References: General Components
     private Transform Transform;
     private Transform MainCameraTransform;
     private Rigidbody Rigidbody;
     private PhotonView PhotonView;
-    /// <summary>
-    /// Player Specific Components
-    /// </summary>
+    #endregion References: General
+
+    #region References: Player Specific Components
     private PlayerObjectComponents PlayerObjectComponents;
     private PlayerAnimation PlayerAnimation;
-    /// <summary>
-    /// Flight Runner Specific Components
-    /// </summary>
-    private FlightRunnerObjectComponents FlightRunnerObjectComponents;
+    #endregion References: Player
 
-    /// <summary>
-    /// FPS Calculation (For Checking FPS Performance)
-    /// </summary>
-    private float fpsDisplayRate = 4.0f;  // 4 updates per sec.
+    #region References: FlightRunner Specific Components
+    private FlightRunnerObjectComponents FlightRunnerObjectComponents;
+    #endregion References: FlightRunner
+
+    #region FPS Calculation
+    private float fpsDisplayRatePerSecond = 4.0f;
     private float frameCount = 0;
     private float dt = 0.0f;
     private float fps = 0.0f;
+    #endregion FPS Calculation
 
-    /// <summary>
-    /// All Strings
-    /// </summary>
+    #region Strings
     private string S_BouncePad = "BouncePad";
     private string S_Level = "Level";
     private string S_MetersPerSecond = " m/s";
     private string S_MouseX = "Mouse X";
     private string S_SpeedRamp = "SpeedRamp";
+    #endregion Strings
 
-    /// <summary>
-    /// Player Parameters and Values
-    /// </summary>
+    #endregion Private Variables
+
+    #region Required Classes (PlayerMovementSettings + CMD / FlightRunnerMovementSettings + FCMD)
     [System.Serializable]
     public class PlayerMovementSettings
     {
         //Parameters Movement
-        public float P_AirAcceleration = 2.0f;                                  // Air accel
-        public float P_AirControl = 0.3f;                                       // How precise air control is
-        public float P_AirDeacceleration = 2.0f;                                // Deacceleration experienced when opposite strafing
-        public float P_DoubleJumpDeltaTime = 0.25f;
-        public float P_Friction = 6;                                            // Ground friction
-        public float P_Gravity = 20.0f;
-        public int P_JumpAttempts = 2;
-        public float P_JumpSpeed = 8.0f;                                        // The speed at which the character's up axis gains when hitting jump
-        public float P_MaxSpeed = 150f;
-        public float P_MoveScale = 1.0f;
-        public float P_MoveSpeed = 7.0f;                                        // Ground move speed
-        public float P_RunAcceleration = 14;                                    // Ground accel
-        public float P_RunDeacceleration = 10;                                  // Deacceleration that occurs when running on the ground
-        public float P_SideStrafeAcceleration = 50;                             // How fast acceleration occurs to get up to sideStrafeSpeed when side strafing
-        public float P_SideStrafeSpeed = 1;                                     // What the max speed to generate when side strafing
-        public float P_WalkSoundRate = 0.15f;
+        [Range(0, 200)] [Header("Physics: Player acceleration moving in air")] public float P_AirAcceleration = 2.0f;
+        [Range(0, 200)] [Header("Physics: Player decceleration moving in air")] public float P_AirDeacceleration = 2.0f;
+        [Range(0, 20)] [Header("Physics: Player strafe Left/Right Weight moving in air")] public float P_AirControl = 0.3f;
+        [Range(0, 2)] [Header("Physics: Amout of jumps player is allowed to make")] public int P_JumpAttempts = 2;
+        [Range(0, 20)] [Header("Physics: Time interval for Second Jump")] public float P_DoubleJumpDeltaTime = 0.25f;
+        [Range(0, 200)] [Header("Physics: Friction applied to player when grounded")] public float P_Friction = 6;
+        [Range(0, 200)] [Header("Physics: Gravity force applied to player")] public float P_Gravity = 20.0f;
+        [Range(0, 200)] [Header("Physics: Jump force applied by player")] public float P_JumpSpeed = 8.0f;
+        [Range(0, 200)] [Header("Physics: Maximum speed player can move")] public float P_MaxSpeed = 150f;
+        [Range(0, 200)] [Header("Physics: Speed V.S. Input Weight (Usually Double Movespeed for best results)")] public float P_MoveScale = 1.0f;
+        [Range(0, 200)] [Header("Physics: Player movement speed")] public float P_MoveSpeed = 7.0f;
+        [Range(0, 200)] [Header("Physics: Player acceleration moving on ground")] public float P_RunAcceleration = 14;
+        [Range(0, 200)] [Header("Physics: Player decceleration  moving on ground")] public float P_RunDeacceleration = 10;
+        [Range(0, 200)] [Header("Physics: Player strafe Left/Right acceleration")] public float P_SideStrafeAcceleration = 50;
+        [Range(0, 200)] [Header("Physics: Player strafe Left/Right speed")] public float P_SideStrafeSpeed = 1;
+        [Range(0, 20)] [Header("Audio: Player Footsteps")] public float P_WalkSoundRate = 0.15f;
         //Values: Movement General
         [HideInInspector] public bool V_Airjump = false;
         [HideInInspector] public Vector3 V_BoostVelocity;
@@ -131,17 +145,16 @@ public class PlayerMovement : MonoBehaviour
         [HideInInspector] public float V_TempRampJumpSpeed;
         [HideInInspector] public string v_GroundHitTransformName;
     }
-    public PlayerMovementSettings playerMovementSettings;
-   
+
     [System.Serializable]
     public class FlightRunnerMovementSettings
     {
-        public float P_Gravity;
-        public float P_BreakAccelMultiplier;
-        public float P_AccelMultiplier;
-        public float P_FrictionMultiplier;
+        [Range(0,20)] [Header("Physics: Gravity force applied on FlightRunner")] public float P_Gravity;
+        [Range(0, 20)] [Header("Physics: Break force applied on FlightRunner")] public float P_BreakAccelMultiplier;
+        [Range(0,20)] [Header("Physics: Acceleration force applied on FlightRunner")] public float P_AccelMultiplier;
+        [Range(0, 20)] [Header("Physics: Road Friction force applied on FlightRunner")] public float P_FrictionMultiplier;
+        [Header("Layers for FlightRunner SlopeCheck to rotate to slope")] public LayerMask SlopeLayer;
         public Dictionary<int, int> D_GearMaxSpeed = new Dictionary<int, int>();
-        public LayerMask SlopeLayer;
         [HideInInspector] public Ray[] V_Rays_Ground = new Ray[5];
         [HideInInspector] public RaycastHit[] V_GroundHits;
         [HideInInspector] public RaycastHit lr;
@@ -166,17 +179,12 @@ public class PlayerMovement : MonoBehaviour
 
 
     }
-    public FlightRunnerMovementSettings flightRunnerMovementSettings;
 
-    /// <summary>
-    /// Contains the command the user wishes upon the character
-    /// </summary>
     private class Cmd
     {
         public float forwardmove;
         public float rightmove;
     }
-    private Cmd cmd; // Player commands, stores wish commands that the player asks for (Forward, back, jump, etc)
 
     private class FlightRunnerCmd
     {
@@ -185,66 +193,92 @@ public class PlayerMovement : MonoBehaviour
         public float breakPedal;
         public int gearNumber;
     }
-    private FlightRunnerCmd flightRunnerCmd;
+    #endregion Required Classes
 
+    #region Main Functions
 
-    //SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS
-    //SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS
-    //SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS - SCRIPT BEGINS
-
-    /// <summary>
-    /// Initialization
-    /// </summary>
+    #region Initialization Methods
     private void Start()
+    {
+        InitGeneralReferences();
+
+        // Player/FlightRunner References for all Clients initialized
+        InitPlayerReferences();
+        InitFlightRunnerReferences();
+
+        if (!PhotonView.isMine) return;
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+
+        // Player/FlightRunner Data locally initialized
+        InitPlayerData();
+        InitFlightRunnerData();
+    }
+
+    private void InitGeneralReferences()
     {
         PhotonView = GetComponent<PhotonView>();
         Rigidbody = GetComponent<Rigidbody>();
         Transform = GetComponent<Transform>();
+    }
 
-        // Player / Flight Runner Specifics
+    #region Init: Player/FlightRunner Specifics
+    private void InitPlayerReferences()
+    {
         if (SpawnCharacterType.Equals(SpawnCharacterType.Player))
         {
             PlayerObjectComponents = GetComponent<PlayerObjectComponents>();
             MainCameraTransform = PlayerObjectComponents.PlayerCamera.transform;
             PlayerAnimation = GetComponent<PlayerAnimation>();
         }
+    }
+
+    private void InitFlightRunnerReferences()
+    {
         if (SpawnCharacterType.Equals(SpawnCharacterType.FlightRunner))
         {
             FlightRunnerObjectComponents = GetComponent<FlightRunnerObjectComponents>();
             MainCameraTransform = FlightRunnerObjectComponents.MainCamera.transform;
         }
+    }
 
-        if (!PhotonView.isMine) return;
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-
-        // Player / Flight Runner Specifics
+    private void InitPlayerData()
+    {
         if (SpawnCharacterType.Equals(SpawnCharacterType.Player))
         {
             cmd = new Cmd();
-            playerMovementSettings.V_GroundHits = new RaycastHit[255];
-            playerMovementSettings.V_CeilingHits = new RaycastHit[255];
-            playerMovementSettings.V_WallHits = new RaycastHit[255];
-        }
-        if (SpawnCharacterType.Equals(SpawnCharacterType.FlightRunner))
-        {
-            flightRunnerCmd = new FlightRunnerCmd();
-            flightRunnerCmd.gearNumber = 1;
-            flightRunnerMovementSettings.V_Gear = flightRunnerCmd.gearNumber;
-            flightRunnerMovementSettings.V_GroundHits = new RaycastHit[255];
-            flightRunnerMovementSettings.V_WallHits = new RaycastHit[255];
-            FlighRunnerInputType = FlightRunnerInputType.MouseAndKeyboard;
-            FlightRunnerDriveType = FlightRunnerDriveType.TwoWheel;
-
-            flightRunnerMovementSettings.D_GearMaxSpeed.Add(-1, 60);
-            flightRunnerMovementSettings.D_GearMaxSpeed.Add(1, 20);
-            flightRunnerMovementSettings.D_GearMaxSpeed.Add(2, 30);
-            flightRunnerMovementSettings.D_GearMaxSpeed.Add(3, 40);
-            flightRunnerMovementSettings.D_GearMaxSpeed.Add(4, 50);
-            flightRunnerMovementSettings.D_GearMaxSpeed.Add(5, 60);
+            PMS.V_GroundHits = new RaycastHit[255];
+            PMS.V_CeilingHits = new RaycastHit[255];
+            PMS.V_WallHits = new RaycastHit[255];
         }
     }
 
+
+    private void InitFlightRunnerData()
+    {
+        if (SpawnCharacterType.Equals(SpawnCharacterType.FlightRunner))
+        {
+            FCmd = new FlightRunnerCmd();
+            FCmd.gearNumber = 1;
+            FMS.V_Gear = FCmd.gearNumber;
+            FMS.V_GroundHits = new RaycastHit[255];
+            FMS.V_WallHits = new RaycastHit[255];
+            FlighRunnerInputType = FlightRunnerInputType.MouseAndKeyboard;
+            FlightRunnerDriveType = FlightRunnerDriveType.TwoWheel;
+
+            FMS.D_GearMaxSpeed.Add(-1, 60);
+            FMS.D_GearMaxSpeed.Add(1, 20);
+            FMS.D_GearMaxSpeed.Add(2, 30);
+            FMS.D_GearMaxSpeed.Add(3, 40);
+            FMS.D_GearMaxSpeed.Add(4, 50);
+            FMS.D_GearMaxSpeed.Add(5, 60);
+        }
+    }
+    #endregion Init: Player/FlightRunner Specifics
+
+    #endregion InitializationMethods
+
+    #region Update / FixedUpdate Loops
     private void Update()
     {
         //LOCAL PLAYER SECTION
@@ -266,15 +300,15 @@ public class PlayerMovement : MonoBehaviour
 
             frameCount++;
             dt += Time.deltaTime;
-            if (dt > 1.0f / fpsDisplayRate)
+            if (dt > 1.0f / fpsDisplayRatePerSecond)
             {
                 fps = Mathf.Round(frameCount / dt);
                 frameCount = 0;
-                dt -= 1.0f / fpsDisplayRate;
+                dt -= 1.0f / fpsDisplayRatePerSecond;
 
                 PlayerScreenDisplay.Instance.Text_CurrentFrameRate.text = fps.ToString();
                 PlayerScreenDisplay.Instance.Text_Ping.text = PhotonNetwork.GetPing().ToString();
-                PlayerScreenDisplay.Instance.Text_PlayerVelocity.text = ((int)playerMovementSettings.V_PlayerVelocity.magnitude).ToString() + S_MetersPerSecond;
+                PlayerScreenDisplay.Instance.Text_PlayerVelocity.text = ((int)PMS.V_PlayerVelocity.magnitude).ToString() + S_MetersPerSecond;
             }
 
             if (CameraManager.Instance.spectateMode == CameraManager.SpectateMode.Free)
@@ -318,9 +352,7 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Physical Movement of Rigidbody performed in FixedUpdate Loop
-    /// </summary>
+    // Physical Movement of Rigidbody performed in FixedUpdate Loop
     private void FixedUpdate()
     {
         if (!PhotonView.isMine) { return; }
@@ -330,7 +362,7 @@ public class PlayerMovement : MonoBehaviour
         {
             if (Rigidbody.velocity.magnitude > 0) { Rigidbody.velocity = Vector3.zero; }
 
-            Rigidbody.MovePosition(Rigidbody.position + playerMovementSettings.V_PlayerVelocity * Time.fixedDeltaTime);
+            Rigidbody.MovePosition(Rigidbody.position + PMS.V_PlayerVelocity * Time.fixedDeltaTime);
         }
 
         /* MOVEMENT Flight Runner: here's the important part*/
@@ -345,7 +377,9 @@ public class PlayerMovement : MonoBehaviour
             FlightRunner_MoveRigidBody();
         }
     }
+    #endregion Update / FixedUpdate Loops
 
+    #region Player Movement Methods
     /* Player Behavior Section 
      *
      * 2)   Queue Jump
@@ -359,9 +393,7 @@ public class PlayerMovement : MonoBehaviour
      * 10)  Player Move
      */
 
-    /// <summary>
-    /// Called in Update(). This is the General Player Behavior Loop, for updating values in inputs
-    /// </summary>
+    // Called in Update(). This is the General Player Behavior Loop, for updating values in inputs
     private void Update_PlayerBehavior()
     {
         //TODO: Zoom_Vs_NoZoom
@@ -379,16 +411,16 @@ public class PlayerMovement : MonoBehaviour
             GetComponent<CapsuleCollider>().radius = .5f;
             GetComponent<CapsuleCollider>().height = 2f;
 
-            DustFX_Behavior(playerMovementSettings.V_PlayerVelocity, playerMovementSettings.V_IsGrounded);
+            DustFX_Behavior(PMS.V_PlayerVelocity, PMS.V_IsGrounded);
 
-            if (playerMovementSettings.V_IsGrounded)
+            if (PMS.V_IsGrounded)
             {
-                if (playerMovementSettings.V_IsLanded == false)
-                    playerMovementSettings.V_IsLanded = true;
-                playerMovementSettings.V_IsJumping = false;
+                if (PMS.V_IsLanded == false)
+                    PMS.V_IsLanded = true;
+                PMS.V_IsJumping = false;
                 Player_GroundMove();
             }
-            else if (!playerMovementSettings.V_IsGrounded)
+            else if (!PMS.V_IsGrounded)
             {
                 Player_AirMove();
             }
@@ -400,102 +432,94 @@ public class PlayerMovement : MonoBehaviour
             //IF PLAYER IS DEAD
             GetComponent<CapsuleCollider>().height = .25f;
             GetComponent<CapsuleCollider>().radius = .25f;
-            if (playerMovementSettings.V_IsGrounded) playerMovementSettings.V_PlayerVelocity.y -= playerMovementSettings.P_Gravity * Time.deltaTime;
+            if (PMS.V_IsGrounded) PMS.V_PlayerVelocity.y -= PMS.P_Gravity * Time.deltaTime;
             Player_DetectCollision(.5f);                            // 2) Detect Collision Against Wall
             Player_GroundCheck(1f);                                 // 3) Detect Collision Against Ground
             Player_CeilingCheck();                                  // 4) Detect Collision Against Ceiling
-            if (playerMovementSettings.V_IsGrounded)
+            if (PMS.V_IsGrounded)
             {
                 Player_ApplyFriction(.5f);
             }
         }
     }
 
-    /// <summary>
-    /// Detects Player Ground Collision, and initializes multiple rays
-    /// </summary>
-    /// <param name="distance"></param>
+    // Detects Player Ground Collision, and initializes multiple rays
     private void Player_GroundCheck(float distance)
     {
-        if (playerMovementSettings.V_KnockBackOverride)
+        if (PMS.V_KnockBackOverride)
         {
-            playerMovementSettings.V_IsGrounded = false;
+            PMS.V_IsGrounded = false;
             return;
         }
 
-        playerMovementSettings.V_TempJumpSpeed = playerMovementSettings.P_JumpSpeed;
-        playerMovementSettings.V_TempRampJumpSpeed = playerMovementSettings.P_JumpSpeed * 10;
-        if (playerMovementSettings.V_WishJump) { playerMovementSettings.V_TempJumpSpeed *= 10; playerMovementSettings.V_TempRampJumpSpeed *= 2; }
-        playerMovementSettings.V_Rays_Ground[0] = new Ray(Transform.position, -Transform.up);
-        playerMovementSettings.V_Rays_Ground[1] = new Ray(Transform.position + Transform.forward, -Transform.up);
-        playerMovementSettings.V_Rays_Ground[2] = new Ray(Transform.position - Transform.forward, -Transform.up);
-        playerMovementSettings.V_Rays_Ground[3] = new Ray(Transform.position + Transform.right, -Transform.up);
-        playerMovementSettings.V_Rays_Ground[4] = new Ray(Transform.position - Transform.right, -Transform.up);
+        PMS.V_TempJumpSpeed = PMS.P_JumpSpeed;
+        PMS.V_TempRampJumpSpeed = PMS.P_JumpSpeed * 10;
+        if (PMS.V_WishJump) { PMS.V_TempJumpSpeed *= 10; PMS.V_TempRampJumpSpeed *= 2; }
+        PMS.V_Rays_Ground[0] = new Ray(Transform.position, -Transform.up);
+        PMS.V_Rays_Ground[1] = new Ray(Transform.position + Transform.forward, -Transform.up);
+        PMS.V_Rays_Ground[2] = new Ray(Transform.position - Transform.forward, -Transform.up);
+        PMS.V_Rays_Ground[3] = new Ray(Transform.position + Transform.right, -Transform.up);
+        PMS.V_Rays_Ground[4] = new Ray(Transform.position - Transform.right, -Transform.up);
         //DO NOT WANT NOT BEING ABLE TO JUMP UNEXPECTEDLY. MUST RAYCAST AT LEAST >= PLAYER HEIGHT=4
 
-        if (!Player_GroundRayCast(playerMovementSettings.V_Rays_Ground, distance))
+        if (!Player_GroundRayCast(PMS.V_Rays_Ground, distance))
         {
-            playerMovementSettings.V_IsFloorDetected = false;
-            playerMovementSettings.V_IsGrounded = false;
-            if (playerMovementSettings.V_PlayerVelocity.y < -100f)
+            PMS.V_IsFloorDetected = false;
+            PMS.V_IsGrounded = false;
+            if (PMS.V_PlayerVelocity.y < -100f)
             {
-                playerMovementSettings.V_IsLanded = false;
+                PMS.V_IsLanded = false;
             }
         }
     }
 
-    /// <summary>
-    /// Sets up multiple rays for ground ray casting
-    /// </summary>
-    /// <param name="rays"></param>
-    /// <param name="dist"></param>
-    /// <returns></returns>
+    // Sets up multiple rays for ground ray casting
     private bool Player_GroundRayCast(Ray[] rays, float dist)
     {
         foreach (Ray ray in rays)
         {
-            if (Physics.RaycastNonAlloc(ray, playerMovementSettings.V_GroundHits, dist, RayCastLayersToHit) > 0)
+            if (Physics.RaycastNonAlloc(ray, PMS.V_GroundHits, dist, RayCastLayersToHit) > 0)
             {
-                foreach (RaycastHit hit in playerMovementSettings.V_GroundHits)
+                foreach (RaycastHit hit in PMS.V_GroundHits)
                 {
 
-                    playerMovementSettings.V_IsFloorDetected = true;
-                    playerMovementSettings.V_GroundHit = hit;
-                    playerMovementSettings.V_GroundHitTransform = playerMovementSettings.V_GroundHit.transform;
-                    playerMovementSettings.v_GroundHitTransformName = playerMovementSettings.V_GroundHitTransform.name;
+                    PMS.V_IsFloorDetected = true;
+                    PMS.V_GroundHit = hit;
+                    PMS.V_GroundHitTransform = PMS.V_GroundHit.transform;
+                    PMS.v_GroundHitTransformName = PMS.V_GroundHitTransform.name;
 
                     if (hit.transform.CompareTag(S_SpeedRamp))
                     {
-                        playerMovementSettings.V_IsGrounded = false;
-                        if (!playerMovementSettings.V_IsBoosted)
+                        PMS.V_IsGrounded = false;
+                        if (!PMS.V_IsBoosted)
                         {
-                            playerMovementSettings.V_BoostVelocity = Vector3.Cross(playerMovementSettings.V_GroundHit.normal, -playerMovementSettings.V_GroundHit.transform.right) * 75 + playerMovementSettings.V_TempRampJumpSpeed * Transform.up / 10;
-                            playerMovementSettings.V_PlayerVelocity = playerMovementSettings.V_BoostVelocity;
-                            playerMovementSettings.V_IsBoosted = true;
-                            playerMovementSettings.V_IsSliding = true;
+                            PMS.V_BoostVelocity = Vector3.Cross(PMS.V_GroundHit.normal, -PMS.V_GroundHit.transform.right) * 75 + PMS.V_TempRampJumpSpeed * Transform.up / 10;
+                            PMS.V_PlayerVelocity = PMS.V_BoostVelocity;
+                            PMS.V_IsBoosted = true;
+                            PMS.V_IsSliding = true;
                         }
                     }
                     else if (hit.transform.CompareTag(S_BouncePad))
                     {
-                        playerMovementSettings.V_IsGrounded = false;
-                        if (!playerMovementSettings.V_IsBoosted)
+                        PMS.V_IsGrounded = false;
+                        if (!PMS.V_IsBoosted)
                         {
-                            playerMovementSettings.V_BoostVelocity = playerMovementSettings.V_GroundHit.normal * 50 + playerMovementSettings.V_TempJumpSpeed * Transform.up / 10 + new Vector3(playerMovementSettings.V_PlayerVelocity.x, 0, playerMovementSettings.V_PlayerVelocity.z);
-                            playerMovementSettings.V_PlayerVelocity = playerMovementSettings.V_BoostVelocity;
-                            playerMovementSettings.V_IsBoosted = true;
-                            playerMovementSettings.V_IsSliding = false;
+                            PMS.V_BoostVelocity = PMS.V_GroundHit.normal * 50 + PMS.V_TempJumpSpeed * Transform.up / 10 + new Vector3(PMS.V_PlayerVelocity.x, 0, PMS.V_PlayerVelocity.z);
+                            PMS.V_PlayerVelocity = PMS.V_BoostVelocity;
+                            PMS.V_IsBoosted = true;
+                            PMS.V_IsSliding = false;
                         }
 
                     }
                     else
                     {
-                        if (!playerMovementSettings.V_IsBouncePadWallDetected)
+                        if (!PMS.V_IsBouncePadWallDetected)
                         {
-                            playerMovementSettings.V_IsBoosted = false;
-                            playerMovementSettings.V_IsGrounded = true;
-                            playerMovementSettings.V_PlayerVelocity.y = 0;
+                            PMS.V_IsBoosted = false;
+                            PMS.V_IsGrounded = true;
+                            PMS.V_PlayerVelocity.y = 0;
                         }
-                        if (playerMovementSettings.V_IsSliding) playerMovementSettings.V_IsSliding = false;
+                        if (PMS.V_IsSliding) PMS.V_IsSliding = false;
                     }
                     return true;
                 }
@@ -505,9 +529,7 @@ public class PlayerMovement : MonoBehaviour
         return false;
     }
 
-    /// <summary>
-    /// Sets Player movement direction bassed on Inputs
-    /// </summary>
+    // Sets Player movement direction bassed on Inputs
     private void Player_SetMovementDir()
     {
         if (EventManager.Instance.GetScore(PhotonView.owner.NickName, PlayerStatCodes.Health) <= 0)
@@ -520,7 +542,7 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
 
-        if (playerMovementSettings.V_IsSliding) return;
+        if (PMS.V_IsSliding) return;
 
 
         if (InputManager.Instance.GetKey(InputCode.Forward).Equals(true))
@@ -550,19 +572,17 @@ public class PlayerMovement : MonoBehaviour
 
         if (InputManager.Instance.GetKey(InputCode.Run).Equals(true))
         {
-            playerMovementSettings.P_MoveSpeed = 20;
+            PMS.P_MoveSpeed = 20;
         }
         else
         {
-            playerMovementSettings.P_MoveSpeed = 10;
+            PMS.P_MoveSpeed = 10;
         }
         //cmd.forwardmove = Input.GetAxis("Vertical");
         //cmd.rightmove   = Input.GetAxis("Horizontal");
     }
 
-    /// <summary>
-    /// Schedules a Jump request for Jump Behavior
-    /// </summary>
+    // Schedules a Jump request for Jump Behavior
     private void Player_QueueJump()
     {
         if (CameraManager.Instance.spectateMode == CameraManager.SpectateMode.Free)
@@ -571,27 +591,25 @@ public class PlayerMovement : MonoBehaviour
         //if (Input.GetKey(KeyCode.Space))
         if (InputManager.Instance.GetKey(InputCode.Jump))
         {
-            playerMovementSettings.V_WishJump = true;
+            PMS.V_WishJump = true;
         }
         else
         {
-            playerMovementSettings.V_WishJump = false;
+            PMS.V_WishJump = false;
         }
     }
 
-    /// <summary>
-    /// Updates PlayerVelocity while player is in the air
-    /// </summary>
+    // Updates PlayerVelocity while player is in the air
     private void Player_AirMove()
     {
         Vector3 wishdir;
-        float wishvel = playerMovementSettings.P_AirAcceleration;
+        float wishvel = PMS.P_AirAcceleration;
         float accel;
 
         float scale = CmdScale();
 
-        playerMovementSettings.V_KnockBackOverride = false;
-        playerMovementSettings.V_IsBoosted = false;
+        PMS.V_KnockBackOverride = false;
+        PMS.V_IsBoosted = false;
 
         Player_SetMovementDir();
 
@@ -599,40 +617,36 @@ public class PlayerMovement : MonoBehaviour
         wishdir = Transform.TransformDirection(wishdir);
 
         float wishspeed = wishdir.magnitude;
-        wishspeed *= playerMovementSettings.P_MoveSpeed;
+        wishspeed *= PMS.P_MoveSpeed;
 
         wishdir.Normalize();
-        playerMovementSettings.V_MoveDirectionNorm = wishdir;
+        PMS.V_MoveDirectionNorm = wishdir;
         wishspeed *= scale;
 
         // CPM: Aircontrol
         float wishspeed2 = wishspeed;
-        if (Vector3.Dot(playerMovementSettings.V_PlayerVelocity, wishdir) < 0)
-            accel = playerMovementSettings.P_AirDeacceleration;
+        if (Vector3.Dot(PMS.V_PlayerVelocity, wishdir) < 0)
+            accel = PMS.P_AirDeacceleration;
         else
-            accel = playerMovementSettings.P_AirAcceleration;
+            accel = PMS.P_AirAcceleration;
         // If the player is ONLY strafing left or right
         if (cmd.forwardmove == 0 && cmd.rightmove != 0)
         {
-            if (wishspeed > playerMovementSettings.P_SideStrafeSpeed)
-                wishspeed = playerMovementSettings.P_SideStrafeSpeed;
-            accel = playerMovementSettings.P_SideStrafeAcceleration;
+            if (wishspeed > PMS.P_SideStrafeSpeed)
+                wishspeed = PMS.P_SideStrafeSpeed;
+            accel = PMS.P_SideStrafeAcceleration;
         }
 
         Player_Accelerate(wishdir, wishspeed, accel);
-        if (playerMovementSettings.P_AirControl > 0)
+        if (PMS.P_AirControl > 0)
         {
             Player_AirControl(wishdir, wishspeed2);
         }
         // Apply gravity
-        playerMovementSettings.V_PlayerVelocity.y -= playerMovementSettings.P_Gravity * Time.deltaTime;
+        PMS.V_PlayerVelocity.y -= PMS.P_Gravity * Time.deltaTime;
     }
 
-    /// <summary>
-    /// Updates PlayerVelocity based on AirControl Parameter Values
-    /// </summary>
-    /// <param name="wishdir"></param>
-    /// <param name="wishspeed"></param>
+    // Updates PlayerVelocity based on AirControl Parameter Values
     private void Player_AirControl(Vector3 wishdir, float wishspeed)
     {
         float zspeed;
@@ -644,47 +658,45 @@ public class PlayerMovement : MonoBehaviour
         if (cmd.forwardmove == 0 || wishspeed == 0)
             return;
 
-        zspeed = playerMovementSettings.V_PlayerVelocity.y;
-        playerMovementSettings.V_PlayerVelocity.y = 0;
+        zspeed = PMS.V_PlayerVelocity.y;
+        PMS.V_PlayerVelocity.y = 0;
         /* Next two lines are equivalent to idTech's VectorNormalize() */
-        speed = playerMovementSettings.V_PlayerVelocity.magnitude;
-        playerMovementSettings.V_PlayerVelocity.Normalize();
+        speed = PMS.V_PlayerVelocity.magnitude;
+        PMS.V_PlayerVelocity.Normalize();
 
-        dot = Vector3.Dot(playerMovementSettings.V_PlayerVelocity, wishdir);
+        dot = Vector3.Dot(PMS.V_PlayerVelocity, wishdir);
         k = 32;
-        k *= playerMovementSettings.P_AirControl * dot * dot * Time.deltaTime;
+        k *= PMS.P_AirControl * dot * dot * Time.deltaTime;
 
         // Change direction while slowing down
         if (dot > 0)
         {
-            playerMovementSettings.V_PlayerVelocity.x = playerMovementSettings.V_PlayerVelocity.x * speed + wishdir.x * k;
-            playerMovementSettings.V_PlayerVelocity.y = playerMovementSettings.V_PlayerVelocity.y * speed + wishdir.y * k;
-            playerMovementSettings.V_PlayerVelocity.z = playerMovementSettings.V_PlayerVelocity.z * speed + wishdir.z * k;
+            PMS.V_PlayerVelocity.x = PMS.V_PlayerVelocity.x * speed + wishdir.x * k;
+            PMS.V_PlayerVelocity.y = PMS.V_PlayerVelocity.y * speed + wishdir.y * k;
+            PMS.V_PlayerVelocity.z = PMS.V_PlayerVelocity.z * speed + wishdir.z * k;
 
-            playerMovementSettings.V_PlayerVelocity.Normalize();
-            playerMovementSettings.V_MoveDirectionNorm = playerMovementSettings.V_PlayerVelocity;
+            PMS.V_PlayerVelocity.Normalize();
+            PMS.V_MoveDirectionNorm = PMS.V_PlayerVelocity;
         }
 
-        playerMovementSettings.V_PlayerVelocity.x *= speed;
-        playerMovementSettings.V_PlayerVelocity.y = zspeed; // Note this line
-        playerMovementSettings.V_PlayerVelocity.z *= speed;
+        PMS.V_PlayerVelocity.x *= speed;
+        PMS.V_PlayerVelocity.y = zspeed; // Note this line
+        PMS.V_PlayerVelocity.z *= speed;
 
     }
 
-    /// <summary>
-    /// Updates PlayerVelocity while player is grounded.
-    /// </summary>
+    // Updates PlayerVelocity while player is grounded.
     private void Player_GroundMove()
     {
         Vector3 wishdir;
 
         //set airjump to false again to allow an Extra Jump in Airmove()
-        playerMovementSettings.V_Airjump = false;
+        PMS.V_Airjump = false;
 
         // Do not apply friction if the player is queueing up the next jump
-        if (!playerMovementSettings.V_WishJump)
+        if (!PMS.V_WishJump)
         {
-            if (playerMovementSettings.V_RaycastFloorType == 1)
+            if (PMS.V_RaycastFloorType == 1)
             {
                 Player_ApplyFriction(0f);
             }
@@ -705,149 +717,134 @@ public class PlayerMovement : MonoBehaviour
         wishdir = new Vector3(cmd.rightmove, 0, cmd.forwardmove);
         wishdir = Transform.TransformDirection(wishdir);
         wishdir.Normalize();
-        playerMovementSettings.V_MoveDirectionNorm = wishdir;
+        PMS.V_MoveDirectionNorm = wishdir;
         float wishspeed = wishdir.magnitude;
-        wishspeed *= playerMovementSettings.P_MoveSpeed;
+        wishspeed *= PMS.P_MoveSpeed;
 
-        Player_Accelerate(wishdir, wishspeed, playerMovementSettings.P_RunAcceleration);
+        Player_Accelerate(wishdir, wishspeed, PMS.P_RunAcceleration);
 
         // Reset the gravity velocity		
-        playerMovementSettings.V_PlayerVelocity.y = 0;
+        PMS.V_PlayerVelocity.y = 0;
 
         //SingleJump
-        if (playerMovementSettings.V_WishJump && !playerMovementSettings.V_IsHitCeiling)
+        if (PMS.V_WishJump && !PMS.V_IsHitCeiling)
         {
-            playerMovementSettings.V_IsJumping = true;
-            playerMovementSettings.V_PlayerVelocity.y = playerMovementSettings.P_JumpSpeed;
-            playerMovementSettings.V_IsDoubleJumping = false;
+            PMS.V_IsJumping = true;
+            PMS.V_PlayerVelocity.y = PMS.P_JumpSpeed;
+            PMS.V_IsDoubleJumping = false;
 
-            playerMovementSettings.V_WishJump = false;
+            PMS.V_WishJump = false;
 
-            playerMovementSettings.V_IsLanded = false;
+            PMS.V_IsLanded = false;
         }
     }
 
-    /// <summary>
-    /// Detects Player Ceiling Collision
-    /// </summary>
+    // Detects Player Ceiling Collision
     private void Player_CeilingCheck()
     {
-        playerMovementSettings.V_Ray_Ceiling = new Ray(Transform.position, Transform.up);
+        PMS.V_Ray_Ceiling = new Ray(Transform.position, Transform.up);
 
         //DO NOT WANT NOT BEING ABLE TO JUMP UNEXPECTEDLY. MUST RAYCAST AT LEAST >= PLAYER HEIGHT=4
-        if (Physics.RaycastNonAlloc(playerMovementSettings.V_Ray_Ceiling, playerMovementSettings.V_CeilingHits, 4f + .1f, RayCastLayersToHit) > 0)
+        if (Physics.RaycastNonAlloc(PMS.V_Ray_Ceiling, PMS.V_CeilingHits, 4f + .1f, RayCastLayersToHit) > 0)
         {
-            foreach (RaycastHit hit in playerMovementSettings.V_CeilingHits)
+            foreach (RaycastHit hit in PMS.V_CeilingHits)
             {
-                playerMovementSettings.V_IsHitCeiling = true;
-                if (playerMovementSettings.V_PlayerVelocity.y > 0)
-                    playerMovementSettings.V_PlayerVelocity.y *= -1;
+                PMS.V_IsHitCeiling = true;
+                if (PMS.V_PlayerVelocity.y > 0)
+                    PMS.V_PlayerVelocity.y *= -1;
             }
         }
         else
         {
-            playerMovementSettings.V_IsHitCeiling = false;
+            PMS.V_IsHitCeiling = false;
         }
     }
 
-    /// <summary>
-    /// Detects Player Wall Collision
-    /// </summary>
-    /// <param name="dist"></param>
+    // Detects Player Wall Collision
     private void Player_DetectCollision(float dist)
     {
-        playerMovementSettings.V_Ray_Velocity = new Ray(Transform.position, playerMovementSettings.V_PlayerVelocity);
-        Debug.DrawRay(Transform.position, playerMovementSettings.V_PlayerVelocity, Color.red);
-        playerMovementSettings.V_SpeedReduction = Vector3.zero;
+        PMS.V_Ray_Velocity = new Ray(Transform.position, PMS.V_PlayerVelocity);
+        Debug.DrawRay(Transform.position, PMS.V_PlayerVelocity, Color.red);
+        PMS.V_SpeedReduction = Vector3.zero;
 
-        if (Physics.RaycastNonAlloc(playerMovementSettings.V_Ray_Velocity, playerMovementSettings.V_WallHits, dist, RayCastLayersToHit) > 0)
+        if (Physics.RaycastNonAlloc(PMS.V_Ray_Velocity, PMS.V_WallHits, dist, RayCastLayersToHit) > 0)
         {
-            foreach (RaycastHit collisionHit in playerMovementSettings.V_WallHits)
+            foreach (RaycastHit collisionHit in PMS.V_WallHits)
             {
                 if (collisionHit.collider == null) continue;
                 if (collisionHit.transform.CompareTag(S_Level))
                 {
-                    playerMovementSettings.V_SpeedReduction = collisionHit.normal;
-                    float xMag = Mathf.Abs(playerMovementSettings.V_PlayerVelocity.x);
-                    float yMag = Mathf.Abs(playerMovementSettings.V_PlayerVelocity.y);
-                    float zMag = Mathf.Abs(playerMovementSettings.V_PlayerVelocity.z);
+                    PMS.V_SpeedReduction = collisionHit.normal;
+                    float xMag = Mathf.Abs(PMS.V_PlayerVelocity.x);
+                    float yMag = Mathf.Abs(PMS.V_PlayerVelocity.y);
+                    float zMag = Mathf.Abs(PMS.V_PlayerVelocity.z);
 
-                    playerMovementSettings.V_SpeedReduction.x = playerMovementSettings.V_SpeedReduction.x * xMag * 1.1f;
-                    playerMovementSettings.V_SpeedReduction.z = playerMovementSettings.V_SpeedReduction.z * zMag * 1.1f;
+                    PMS.V_SpeedReduction.x = PMS.V_SpeedReduction.x * xMag * 1.1f;
+                    PMS.V_SpeedReduction.z = PMS.V_SpeedReduction.z * zMag * 1.1f;
 
-                    playerMovementSettings.V_PlayerVelocity.x += playerMovementSettings.V_SpeedReduction.x;
-                    playerMovementSettings.V_PlayerVelocity.z += playerMovementSettings.V_SpeedReduction.z;
+                    PMS.V_PlayerVelocity.x += PMS.V_SpeedReduction.x;
+                    PMS.V_PlayerVelocity.z += PMS.V_SpeedReduction.z;
                 }
 
                 if (collisionHit.transform.CompareTag(S_BouncePad))
                 {
                     //Debug.Log("HitBouncePadWall");
-                    playerMovementSettings.V_IsGrounded = false;
+                    PMS.V_IsGrounded = false;
                     //_playerVelocity.y = jumpSpeed * 4;
-                    if (!playerMovementSettings.V_IsBouncePadWallDetected)
+                    if (!PMS.V_IsBouncePadWallDetected)
                     {
-                        playerMovementSettings.V_BoostVelocity = collisionHit.normal * 50 + playerMovementSettings.P_JumpSpeed * Transform.up;
-                        playerMovementSettings.V_PlayerVelocity = playerMovementSettings.V_BoostVelocity;
-                        playerMovementSettings.V_IsBouncePadWallDetected = true;
+                        PMS.V_BoostVelocity = collisionHit.normal * 50 + PMS.P_JumpSpeed * Transform.up;
+                        PMS.V_PlayerVelocity = PMS.V_BoostVelocity;
+                        PMS.V_IsBouncePadWallDetected = true;
                     }
 
                 }
                 else
                 {
-                    playerMovementSettings.V_IsBouncePadWallDetected = false;
+                    PMS.V_IsBouncePadWallDetected = false;
                 }
 
             }
         }
         else
         {
-            playerMovementSettings.V_IsBouncePadWallDetected = false;
+            PMS.V_IsBouncePadWallDetected = false;
         }
     }
 
-    /// <summary>
-    /// Controls when the dust FX for player is turned on or off
-    /// </summary>
-    /// <param name="vel"></param>
-    /// <param name="onGround"></param>
+    // Controls when the dust FX for player is turned on or off
     private void DustFX_Behavior(Vector3 vel, bool onGround)
     {
         if (vel.magnitude > 0 && onGround)
         {
-            if (!playerMovementSettings.V_IsDisplayDustFX)
+            if (!PMS.V_IsDisplayDustFX)
             {
-                playerMovementSettings.V_IsDisplayDustFX = true;
-                DustFX_Activate(playerMovementSettings.V_IsDisplayDustFX);
+                PMS.V_IsDisplayDustFX = true;
+                DustFX_Activate(PMS.V_IsDisplayDustFX);
             }
         }
         else
         {
-            if (playerMovementSettings.V_IsDisplayDustFX)
+            if (PMS.V_IsDisplayDustFX)
             {
-                playerMovementSettings.V_IsDisplayDustFX = false;
-                DustFX_Activate(playerMovementSettings.V_IsDisplayDustFX);
+                PMS.V_IsDisplayDustFX = false;
+                DustFX_Activate(PMS.V_IsDisplayDustFX);
             }
         }
     }
 
-    /// <summary>
-    /// Turns On or Off Dust FX
-    /// </summary>
-    /// <param name="val"></param>
+    // Turns On or Off Dust FX
     private void DustFX_Activate(bool val)
     {
         PlayerObjectComponents.DustPrefab.SetActive(val);
     }
 
-    /// <summary>
-    /// Applies Fiction to the Player
-    /// </summary>
-    /// <param name="t"></param>
+    // Applies Fiction to the Player
     private void Player_ApplyFriction(float t)
     {
-        if (playerMovementSettings.V_IsSliding) return;
+        if (PMS.V_IsSliding) return;
 
-        Vector3 vec = playerMovementSettings.V_PlayerVelocity;
+        Vector3 vec = PMS.V_PlayerVelocity;
         float speed;
         float newspeed;
         float control;
@@ -858,40 +855,38 @@ public class PlayerMovement : MonoBehaviour
         drop = 0.0f;
 
         /* Only if the player is on the ground then apply friction */
-        if (playerMovementSettings.V_IsGrounded)
+        if (PMS.V_IsGrounded)
         {
-            control = speed < playerMovementSettings.P_RunDeacceleration ? playerMovementSettings.P_RunDeacceleration : speed;
-            drop = control * playerMovementSettings.P_Friction * Time.deltaTime * t;
+            control = speed < PMS.P_RunDeacceleration ? PMS.P_RunDeacceleration : speed;
+            drop = control * PMS.P_Friction * Time.deltaTime * t;
         }
 
         newspeed = speed - drop;
-        playerMovementSettings.V_PlayerFriction = newspeed;
+        PMS.V_PlayerFriction = newspeed;
         if (newspeed < 0)
             newspeed = 0;
         if (speed > 0)
             newspeed /= speed;
 
-        playerMovementSettings.V_PlayerVelocity.x *= newspeed;
+        PMS.V_PlayerVelocity.x *= newspeed;
         // playerVelocity.y *= newspeed;
-        playerMovementSettings.V_PlayerVelocity.z *= newspeed;
+        PMS.V_PlayerVelocity.z *= newspeed;
     }
 
-    /// <summary>
-    /// Calculates wish acceleration based on player's cmd wishes i.e. WASD movement
-    /// </summary>
+    // Calculates wish acceleration based on player's cmd wishes i.e. WASD movement
     private void Player_Accelerate(Vector3 wishdir, float wishspeed, float accel)
     {
         float addspeed;
         float accelspeed;
         float currentspeed;
 
-        if (playerMovementSettings.V_PlayerVelocity.magnitude >= 100)
+        if (PMS.V_PlayerVelocity.magnitude >= 100)
         {
             return;
         }
 
 
-        currentspeed = Vector3.Dot(playerMovementSettings.V_PlayerVelocity, wishdir);
+        currentspeed = Vector3.Dot(PMS.V_PlayerVelocity, wishdir);
         addspeed = wishspeed - currentspeed;
         if (addspeed <= 0)
             return;
@@ -899,15 +894,13 @@ public class PlayerMovement : MonoBehaviour
         if (accelspeed > addspeed)
             accelspeed = addspeed;
 
-        playerMovementSettings.V_PlayerVelocity.x += accelspeed * wishdir.x;
-        playerMovementSettings.V_PlayerVelocity.z += accelspeed * wishdir.z;
+        PMS.V_PlayerVelocity.x += accelspeed * wishdir.x;
+        PMS.V_PlayerVelocity.z += accelspeed * wishdir.z;
 
     }
 
-    /// <summary>
-    /// Gets Scale of movement
-    /// </summary>
-    /// <returns></returns>
+
+    // Gets Scale of movement
     private float CmdScale()
     {
         int max;
@@ -923,53 +916,52 @@ public class PlayerMovement : MonoBehaviour
             return 0;
         }
         total = Mathf.Sqrt(cmd.forwardmove * cmd.forwardmove + cmd.rightmove * cmd.rightmove);
-        scale = playerMovementSettings.P_MoveSpeed * max / (playerMovementSettings.P_MoveScale * total);
+        scale = PMS.P_MoveSpeed * max / (PMS.P_MoveScale * total);
 
         return scale;
     }
 
 
-    /// <summary>
-    /// Limits Player Velocity
-    /// </summary>
+    // Limits Player Velocity
     private void Player_LimitSpeed()
     {
-        if (playerMovementSettings.V_IsBoosted || playerMovementSettings.V_IsSliding)
+        if (PMS.V_IsBoosted || PMS.V_IsSliding)
         {
             return;
         }
 
-        if (playerMovementSettings.V_PlayerVelocity.x < -playerMovementSettings.P_MaxSpeed)
+        if (PMS.V_PlayerVelocity.x < -PMS.P_MaxSpeed)
         {
-            playerMovementSettings.V_PlayerVelocity.x = -playerMovementSettings.P_MaxSpeed;
+            PMS.V_PlayerVelocity.x = -PMS.P_MaxSpeed;
         }
-        if (playerMovementSettings.V_PlayerVelocity.x > playerMovementSettings.P_MaxSpeed)
+        if (PMS.V_PlayerVelocity.x > PMS.P_MaxSpeed)
         {
-            playerMovementSettings.V_PlayerVelocity.x = playerMovementSettings.P_MaxSpeed;
+            PMS.V_PlayerVelocity.x = PMS.P_MaxSpeed;
         }
-        if (playerMovementSettings.V_PlayerVelocity.z < -playerMovementSettings.P_MaxSpeed)
+        if (PMS.V_PlayerVelocity.z < -PMS.P_MaxSpeed)
         {
-            playerMovementSettings.V_PlayerVelocity.z = -playerMovementSettings.P_MaxSpeed;
+            PMS.V_PlayerVelocity.z = -PMS.P_MaxSpeed;
         }
-        if (playerMovementSettings.V_PlayerVelocity.z > playerMovementSettings.P_MaxSpeed)
+        if (PMS.V_PlayerVelocity.z > PMS.P_MaxSpeed)
         {
-            playerMovementSettings.V_PlayerVelocity.z = playerMovementSettings.P_MaxSpeed;
+            PMS.V_PlayerVelocity.z = PMS.P_MaxSpeed;
         }
 
     }
 
-    /// <summary>
-    /// Rotates the Player
-    /// </summary>
+    // Rotates the Player
     private void Player_Rotate()
     {
         if (EventManager.Instance.GetScore(PhotonView.owner.NickName, PlayerStatCodes.Health) > 0)
         {
-            playerMovementSettings.V_RotationY += Input.GetAxis(S_MouseX) * (playerMovementSettings.V_MouseSensitivity / 3f) * 0.1f * Time.timeScale;           
+            PMS.V_RotationY += Input.GetAxis(S_MouseX) * (PMS.V_MouseSensitivity / 3f) * 0.1f * Time.timeScale;
         }
-        Transform.rotation = Quaternion.Euler(0, playerMovementSettings.V_RotationY, 0); // 1) Rotates the collider
+        Transform.rotation = Quaternion.Euler(0, PMS.V_RotationY, 0); // 1) Rotates the collider
     }
 
+    #endregion Player Movement Methods
+
+    #region Flight Runner Movement Methods
     /* Flight Runner Behavior Section
      * 
      * 0)    Flight Runner Input                   :: Check Input               [Update]
@@ -988,42 +980,42 @@ public class PlayerMovement : MonoBehaviour
         if (EventManager.Instance.GetScore(PhotonView.owner.NickName, PlayerStatCodes.Health) <= 0)
             return;
 
-        flightRunnerCmd.accelPedal = Input.GetAxis("GasInput");
-        flightRunnerCmd.breakPedal = Input.GetAxis("BreakInput");
-        flightRunnerMovementSettings.V_SteerMag = flightRunnerCmd.steeringWheel = Input.GetAxis("SteeringInput") * 30;
+        FCmd.accelPedal = Input.GetAxis("GasInput");
+        FCmd.breakPedal = Input.GetAxis("BreakInput");
+        FMS.V_SteerMag = FCmd.steeringWheel = Input.GetAxis("SteeringInput") * 30;
 
         if (Input.GetButton("Gear1Input"))
         {
-            flightRunnerCmd.gearNumber = 1;
+            FCmd.gearNumber = 1;
         }
         else if (Input.GetButton("Gear2Input"))
         {
-            flightRunnerCmd.gearNumber = 2;
+            FCmd.gearNumber = 2;
         }
         else if (Input.GetButton("Gear3Input"))
         {
-            flightRunnerCmd.gearNumber = 3;
+            FCmd.gearNumber = 3;
         }
         else if (Input.GetButton("Gear4Input"))
         {
-            flightRunnerCmd.gearNumber = 4;
+            FCmd.gearNumber = 4;
         }
         else if (Input.GetButton("Gear5Input"))
         {
-            flightRunnerCmd.gearNumber = 5;
+            FCmd.gearNumber = 5;
         }
         else if (Input.GetButton("ReverseInput"))
         {
-            flightRunnerCmd.gearNumber = -1;
+            FCmd.gearNumber = -1;
         }
 
         if (Input.GetKey(KeyCode.Space))
         {
-            flightRunnerMovementSettings.V_IsFlightRunnerBoost = true;
+            FMS.V_IsFlightRunnerBoost = true;
             V_BoostTimer = 0;
         }
 
-        if (flightRunnerMovementSettings.V_IsFlightRunnerBoost)
+        if (FMS.V_IsFlightRunnerBoost)
         {
             if (V_BoostTimer < .25f)
             {
@@ -1036,13 +1028,13 @@ public class PlayerMovement : MonoBehaviour
             else
             {
                 V_BoostTimer = 0;
-                flightRunnerMovementSettings.V_IsFlightRunnerBoost = false;
+                FMS.V_IsFlightRunnerBoost = false;
             }
         }
 
-        if (!flightRunnerMovementSettings.V_IsGrounded)
+        if (!FMS.V_IsGrounded)
         {
-            V_GravityValue = Mathf.Min(V_GravityValue += flightRunnerMovementSettings.P_Gravity * DeltaTime, 40);
+            V_GravityValue = Mathf.Min(V_GravityValue += FMS.P_Gravity * DeltaTime, 40);
         }
         else
         {
@@ -1054,13 +1046,13 @@ public class PlayerMovement : MonoBehaviour
             if (FlightRunnerDriveType.Equals(FlightRunnerDriveType.TwoWheel))
             {
                 FlightRunnerDriveType = FlightRunnerDriveType.FourWheel;
-                flightRunnerMovementSettings.V_IsFourWheelDrive = true;
+                FMS.V_IsFourWheelDrive = true;
                 //UpdateDriveType(FlightRunnerDriveType.FourWheel);
             }
             else if (FlightRunnerDriveType.Equals(FlightRunnerDriveType.FourWheel))
             {
                 FlightRunnerDriveType = FlightRunnerDriveType.TwoWheel;
-                flightRunnerMovementSettings.V_IsFourWheelDrive = false;
+                FMS.V_IsFourWheelDrive = false;
                 //UpdateDriveType(FlightRunnerDriveType.TwoWheel);
                 foreach (GameObject Wheel in FlightRunnerObjectComponents.Axel_Rear)
                 {
@@ -1069,41 +1061,41 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        flightRunnerMovementSettings.V_Gear = flightRunnerCmd.gearNumber;
-        flightRunnerCmd.accelPedal = FlighRunnerInputType == FlightRunnerInputType.LogitechG920Wheel ? NormalizeInput(flightRunnerCmd.accelPedal, InputRange.MinusOne_One) : NormalizeInput(flightRunnerCmd.accelPedal, InputRange.Zero_One);
-        flightRunnerCmd.breakPedal = FlighRunnerInputType == FlightRunnerInputType.LogitechG920Wheel ? NormalizeInput(flightRunnerCmd.breakPedal, InputRange.MinusOne_One) : NormalizeInput(flightRunnerCmd.breakPedal, InputRange.Zero_One);
+        FMS.V_Gear = FCmd.gearNumber;
+        FCmd.accelPedal = FlighRunnerInputType == FlightRunnerInputType.LogitechG920Wheel ? NormalizeInput(FCmd.accelPedal, InputRange.MinusOne_One) : NormalizeInput(FCmd.accelPedal, InputRange.Zero_One);
+        FCmd.breakPedal = FlighRunnerInputType == FlightRunnerInputType.LogitechG920Wheel ? NormalizeInput(FCmd.breakPedal, InputRange.MinusOne_One) : NormalizeInput(FCmd.breakPedal, InputRange.Zero_One);
 
         //Flight Runner Acceleration Input Calculations
-        if (flightRunnerCmd.accelPedal > 0)
+        if (FCmd.accelPedal > 0)
         {
-            if (flightRunnerMovementSettings.V_Gear != -1)
+            if (FMS.V_Gear != -1)
             {
                 //Forward Movement
-                flightRunnerMovementSettings.V_AccelMag = flightRunnerMovementSettings.V_AccelMag < flightRunnerMovementSettings.D_GearMaxSpeed[flightRunnerMovementSettings.V_Gear] ? flightRunnerMovementSettings.V_AccelMag += 5 * flightRunnerCmd.accelPedal * DeltaTime : flightRunnerMovementSettings.D_GearMaxSpeed[flightRunnerMovementSettings.V_Gear];
+                FMS.V_AccelMag = FMS.V_AccelMag < FMS.D_GearMaxSpeed[FMS.V_Gear] ? FMS.V_AccelMag += 5 * FCmd.accelPedal * DeltaTime : FMS.D_GearMaxSpeed[FMS.V_Gear];
             }
             else
             {
                 //Reverse Movement
-                flightRunnerMovementSettings.V_AccelMag = flightRunnerMovementSettings.V_AccelMag > -flightRunnerMovementSettings.D_GearMaxSpeed[flightRunnerMovementSettings.V_Gear] ? flightRunnerMovementSettings.V_AccelMag -= 5 * flightRunnerCmd.accelPedal * DeltaTime : -flightRunnerMovementSettings.D_GearMaxSpeed[flightRunnerMovementSettings.V_Gear];
+                FMS.V_AccelMag = FMS.V_AccelMag > -FMS.D_GearMaxSpeed[FMS.V_Gear] ? FMS.V_AccelMag -= 5 * FCmd.accelPedal * DeltaTime : -FMS.D_GearMaxSpeed[FMS.V_Gear];
             }
         }
         //Flight Runner Breaking Input Calculations
         else
         {
             //Break or Friction with Forward Move
-            if (flightRunnerMovementSettings.V_AccelMag > 0)
+            if (FMS.V_AccelMag > 0)
             {
-                flightRunnerMovementSettings.V_AccelMag = flightRunnerCmd.breakPedal > 0 ? flightRunnerMovementSettings.V_AccelMag -= 20 * flightRunnerCmd.breakPedal * DeltaTime : flightRunnerMovementSettings.V_AccelMag -= 4 * DeltaTime;
+                FMS.V_AccelMag = FCmd.breakPedal > 0 ? FMS.V_AccelMag -= 20 * FCmd.breakPedal * DeltaTime : FMS.V_AccelMag -= 4 * DeltaTime;
             }
             //Break or Friction with Reverse Move
-            else if (flightRunnerMovementSettings.V_AccelMag < 0)
+            else if (FMS.V_AccelMag < 0)
             {
-                flightRunnerMovementSettings.V_AccelMag = flightRunnerCmd.breakPedal > 0 ? flightRunnerMovementSettings.V_AccelMag += 20 * flightRunnerCmd.breakPedal * DeltaTime : flightRunnerMovementSettings.V_AccelMag += 4 * DeltaTime;
+                FMS.V_AccelMag = FCmd.breakPedal > 0 ? FMS.V_AccelMag += 20 * FCmd.breakPedal * DeltaTime : FMS.V_AccelMag += 4 * DeltaTime;
             }
             //Idle
             else
             {
-                flightRunnerMovementSettings.V_AccelMag = 0;
+                FMS.V_AccelMag = 0;
             }
         }
     }
@@ -1112,11 +1104,11 @@ public class PlayerMovement : MonoBehaviour
     {
         foreach (GameObject Wheel in FlightRunnerObjectComponents.Wheels_Front)
         {
-            Wheel.transform.rotation *= (Quaternion.Euler(0, flightRunnerMovementSettings.V_AccelMag * .35f, 0));
+            Wheel.transform.rotation *= (Quaternion.Euler(0, FMS.V_AccelMag * .35f, 0));
         }
         foreach (GameObject Wheel in FlightRunnerObjectComponents.Wheels_Rear)
         {
-            Wheel.transform.rotation *= (Quaternion.Euler(0, flightRunnerMovementSettings.V_AccelMag * .35f, 0));
+            Wheel.transform.rotation *= (Quaternion.Euler(0, FMS.V_AccelMag * .35f, 0));
         }
 
     }
@@ -1125,39 +1117,39 @@ public class PlayerMovement : MonoBehaviour
     {
         foreach (GameObject Wheel in FlightRunnerObjectComponents.Axel_Front)
         {
-            Wheel.transform.localRotation = Quaternion.Euler(0, flightRunnerCmd.steeringWheel, 0);
+            Wheel.transform.localRotation = Quaternion.Euler(0, FCmd.steeringWheel, 0);
         }
         if (FlightRunnerDriveType.Equals(FlightRunnerDriveType.FourWheel))
         {
             foreach (GameObject Wheel in FlightRunnerObjectComponents.Axel_Rear)
             {
-                Wheel.transform.localRotation = Quaternion.Euler(0, -flightRunnerCmd.steeringWheel, 0);
+                Wheel.transform.localRotation = Quaternion.Euler(0, -FCmd.steeringWheel, 0);
             }
         }
     }
 
     private void FlightRunner_RotateChasis(float DeltaTime)
     {
-        if (flightRunnerMovementSettings.V_Gear != -1)
+        if (FMS.V_Gear != -1)
         {
             if (FlightRunnerDriveType.Equals(FlightRunnerDriveType.TwoWheel))
             {
-                FlightRunnerObjectComponents.HeadingObject.transform.rotation *= Quaternion.Euler(0, flightRunnerCmd.steeringWheel * 2 * DeltaTime, 0);
+                FlightRunnerObjectComponents.HeadingObject.transform.rotation *= Quaternion.Euler(0, FCmd.steeringWheel * 2 * DeltaTime, 0);
             }
             else
             {
-                FlightRunnerObjectComponents.HeadingObject.transform.rotation *= Quaternion.Euler(0, flightRunnerCmd.steeringWheel * 4 * DeltaTime, 0);
+                FlightRunnerObjectComponents.HeadingObject.transform.rotation *= Quaternion.Euler(0, FCmd.steeringWheel * 4 * DeltaTime, 0);
             }
         }
         else
         {
             if (FlightRunnerDriveType.Equals(FlightRunnerDriveType.TwoWheel))
             {
-                FlightRunnerObjectComponents.HeadingObject.transform.rotation *= Quaternion.Euler(0, -flightRunnerCmd.steeringWheel * 2 * DeltaTime, 0);
+                FlightRunnerObjectComponents.HeadingObject.transform.rotation *= Quaternion.Euler(0, -FCmd.steeringWheel * 2 * DeltaTime, 0);
             }
             else
             {
-                FlightRunnerObjectComponents.HeadingObject.transform.rotation *= Quaternion.Euler(0, -flightRunnerCmd.steeringWheel * 4 * DeltaTime, 0);
+                FlightRunnerObjectComponents.HeadingObject.transform.rotation *= Quaternion.Euler(0, -FCmd.steeringWheel * 4 * DeltaTime, 0);
             }
         }
     }
@@ -1166,19 +1158,19 @@ public class PlayerMovement : MonoBehaviour
     {
         foreach (GameObject Blade in FlightRunnerObjectComponents.BoosterBlades)
         {
-            Blade.transform.rotation *= Quaternion.Euler(0, flightRunnerMovementSettings.V_AccelMag * .7f + 5f, 0);
+            Blade.transform.rotation *= Quaternion.Euler(0, FMS.V_AccelMag * .7f + 5f, 0);
         }
     }
 
     private void FlightRunner_GroundCheck()
     {
-        flightRunnerMovementSettings.V_Rays_Ground[0] = new Ray(Transform.position, -Transform.up);
-        flightRunnerMovementSettings.V_Rays_Ground[1] = new Ray(Transform.position + Transform.forward * 4.0f, -Transform.up);
-        flightRunnerMovementSettings.V_Rays_Ground[2] = new Ray(Transform.position - Transform.forward * 4.0f, -Transform.up);
-        flightRunnerMovementSettings.V_Rays_Ground[3] = new Ray(Transform.position + Transform.right * 4.0f, -Transform.up);
-        flightRunnerMovementSettings.V_Rays_Ground[4] = new Ray(Transform.position - Transform.right * 4.0f, -Transform.up);
+        FMS.V_Rays_Ground[0] = new Ray(Transform.position, -Transform.up);
+        FMS.V_Rays_Ground[1] = new Ray(Transform.position + Transform.forward * 4.0f, -Transform.up);
+        FMS.V_Rays_Ground[2] = new Ray(Transform.position - Transform.forward * 4.0f, -Transform.up);
+        FMS.V_Rays_Ground[3] = new Ray(Transform.position + Transform.right * 4.0f, -Transform.up);
+        FMS.V_Rays_Ground[4] = new Ray(Transform.position - Transform.right * 4.0f, -Transform.up);
 
-        flightRunnerMovementSettings.V_IsGrounded = FlightRunner_GroundRaycast(flightRunnerMovementSettings.V_Rays_Ground, 4.0f);
+        FMS.V_IsGrounded = FlightRunner_GroundRaycast(FMS.V_Rays_Ground, 4.0f);
     }
 
     private bool FlightRunner_GroundRaycast(Ray[] rays, float dist)
@@ -1186,77 +1178,84 @@ public class PlayerMovement : MonoBehaviour
         foreach (Ray ray in rays)
         {
             Debug.DrawRay(Transform.position, -Transform.up, Color.red);
-            if (Physics.RaycastNonAlloc(ray, flightRunnerMovementSettings.V_GroundHits, dist, RayCastLayersToHit) > 0)
+            if (Physics.RaycastNonAlloc(ray, FMS.V_GroundHits, dist, RayCastLayersToHit) > 0)
             {
-                //Debug.Log("Grounded: " + V_GravityValue + ", VEL: " + RigidBody.velocity.magnitude);
                 return true;
             }
         }
-        //Debug.Log("In Air: " + V_GravityValue + ", VEL: " + RigidBody.velocity.magnitude);
         return false;
     }
 
     private Vector3 FlightRunner_GetSlope(Transform tr)
     {
-        Physics.Raycast(tr.position - Vector3.forward * 4.1f - (Vector3.right * 4.1f) + Vector3.up * 1, Vector3.down, out flightRunnerMovementSettings.lr, 8, flightRunnerMovementSettings.SlopeLayer);
-        Physics.Raycast(tr.position - Vector3.forward * 4.1f + (Vector3.right * 4.1f) + Vector3.up * 1, Vector3.down, out flightRunnerMovementSettings.rr, 8, flightRunnerMovementSettings.SlopeLayer);
-        Physics.Raycast(tr.position + Vector3.forward * 4.1f - (Vector3.right * 4.1f) + Vector3.up * 1, Vector3.down, out flightRunnerMovementSettings.lf, 8, flightRunnerMovementSettings.SlopeLayer);
-        Physics.Raycast(tr.position + Vector3.forward * 4.1f + (Vector3.right * 4.1f) + Vector3.up * 1, Vector3.down, out flightRunnerMovementSettings.rf, 8, flightRunnerMovementSettings.SlopeLayer);
-        flightRunnerMovementSettings.upDir = (Vector3.Cross(flightRunnerMovementSettings.rr.point - Vector3.up * 1, flightRunnerMovementSettings.lr.point - Vector3.up * 1) +
-                 Vector3.Cross(flightRunnerMovementSettings.lr.point - Vector3.up * 1, flightRunnerMovementSettings.lf.point - Vector3.up * 1) +
-                 Vector3.Cross(flightRunnerMovementSettings.lf.point - Vector3.up * 1, flightRunnerMovementSettings.rf.point - Vector3.up * 1) +
-                 Vector3.Cross(flightRunnerMovementSettings.rf.point - Vector3.up * 1, flightRunnerMovementSettings.rr.point - Vector3.up * 1)
-                ).normalized;
+        Physics.Raycast(tr.position - Vector3.forward * 4.1f - (Vector3.right * 4.1f) + Vector3.up * 1, Vector3.down, out FMS.lr, 8, FMS.SlopeLayer);
+        Physics.Raycast(tr.position - Vector3.forward * 4.1f + (Vector3.right * 4.1f) + Vector3.up * 1, Vector3.down, out FMS.rr, 8, FMS.SlopeLayer);
+        Physics.Raycast(tr.position + Vector3.forward * 4.1f - (Vector3.right * 4.1f) + Vector3.up * 1, Vector3.down, out FMS.lf, 8, FMS.SlopeLayer);
+        Physics.Raycast(tr.position + Vector3.forward * 4.1f + (Vector3.right * 4.1f) + Vector3.up * 1, Vector3.down, out FMS.rf, 8, FMS.SlopeLayer);
+        FMS.upDir = (Vector3.Cross(FMS.rr.point - Vector3.up * 1, FMS.lr.point - Vector3.up * 1) +
+                                                Vector3.Cross(FMS.lr.point - Vector3.up * 1, FMS.lf.point - Vector3.up * 1) +
+                                                Vector3.Cross(FMS.lf.point - Vector3.up * 1, FMS.rf.point - Vector3.up * 1) +
+                                                Vector3.Cross(FMS.rf.point - Vector3.up * 1, FMS.rr.point - Vector3.up * 1)
+                                                ).normalized;
 
         Debug.DrawRay(tr.position - Vector3.forward * 4.1f - (Vector3.right * 4.1f) + Vector3.up * 1, Vector3.down, Color.green);
         Debug.DrawRay(tr.position - Vector3.forward * 4.1f + (Vector3.right * 4.1f) + Vector3.up * 1, Vector3.down, Color.green);
         Debug.DrawRay(tr.position + Vector3.forward * 4.1f - (Vector3.right * 4.1f) + Vector3.up * 1, Vector3.down, Color.green);
         Debug.DrawRay(tr.position + Vector3.forward * 4.1f + (Vector3.right * 4.1f) + Vector3.up * 1, Vector3.down, Color.green);
 
-        flightRunnerMovementSettings.upDir = new Vector3(flightRunnerMovementSettings.upDir.x, tr.up.y, flightRunnerMovementSettings.upDir.z);
-        return flightRunnerMovementSettings.upDir;
+        FMS.upDir = new Vector3(FMS.upDir.x, tr.up.y, FMS.upDir.z);
+        return FMS.upDir;
     }
 
     private void FlightRunner_TiltSlope()
     {
-        flightRunnerMovementSettings.tiltLerpValue = Mathf.Max(0.1f, (0.5f - flightRunnerMovementSettings.V_AccelMag / 60));
-        Transform.up = Vector3.Lerp(Transform.up, FlightRunner_GetSlope(Transform), flightRunnerMovementSettings.tiltLerpValue);
+        FMS.tiltLerpValue = Mathf.Max(0.1f, (0.5f - FMS.V_AccelMag / 60));
+        Transform.up = Vector3.Lerp(Transform.up, FlightRunner_GetSlope(Transform), FMS.tiltLerpValue);
     }
 
     private void FlightRunner_MoveRigidBody()
     {
-        //FlightRunner_DetectCollision(8);
+        FlightRunner_DetectCollision(8);
 
-        if (flightRunnerMovementSettings.V_IsGrounded)
+        if (FMS.V_IsGrounded)
         {
             //Flight Runner Ground Movement
-            if (flightRunnerMovementSettings.V_IsFlightRunnerBoost)
+            if (FMS.V_IsFlightRunnerBoost)
             {
-                //RigidBody.velocity = (FlightRunnerObjectComponents.HeadingObject.transform.forward * flightRunnerMovementSettings.V_AccelMag + Transform.up * flightRunnerMovementSettings.P_Gravity);
-                //flightRunnerMovementSettings.V_AccelMag += flightRunnerMovementSettings.P_Gravity * Time.deltaTime;
-                flightRunnerMovementSettings.V_AccelMag = Mathf.Min(flightRunnerMovementSettings.V_AccelMag += 200 * Time.deltaTime, 50);
-                
-                Rigidbody.velocity = (FlightRunnerObjectComponents.HeadingObject.transform.forward * flightRunnerMovementSettings.V_AccelMag);
+                FMS.V_AccelMag = Mathf.Min(FMS.V_AccelMag += 200 * Time.deltaTime, 50);
+
+                Rigidbody.velocity = (FlightRunnerObjectComponents.HeadingObject.transform.forward * FMS.V_AccelMag);
             }
             else
             {
-                Rigidbody.velocity = (FlightRunnerObjectComponents.HeadingObject.transform.forward * flightRunnerMovementSettings.V_AccelMag);
+                if (FMS.V_IsCollision)
+                {
+
+                }
+                else
+                {
+                    Rigidbody.velocity = (FlightRunnerObjectComponents.HeadingObject.transform.forward * FMS.V_AccelMag);
+                }
             }
         }
         else
         {
             //Flight Runner Air Movement
-            if (flightRunnerMovementSettings.V_IsFlightRunnerBoost)
+            if (FMS.V_IsFlightRunnerBoost)
             {
-                //RigidBody.velocity = (FlightRunnerObjectComponents.HeadingObject.transform.forward * flightRunnerMovementSettings.V_AccelMag + Transform.up * flightRunnerMovementSettings.P_Gravity);
-                flightRunnerMovementSettings.V_AccelMag = Mathf.Min(flightRunnerMovementSettings.V_AccelMag += 200 * Time.deltaTime, 50);
-                //RigidBody.velocity = (FlightRunnerObjectComponents.HeadingObject.transform.forward * flightRunnerMovementSettings.V_AccelMag - Transform.up * flightRunnerMovementSettings.P_Gravity/4);
-                Rigidbody.velocity = (FlightRunnerObjectComponents.HeadingObject.transform.forward * flightRunnerMovementSettings.V_AccelMag);
+                FMS.V_AccelMag = Mathf.Min(FMS.V_AccelMag += 200 * Time.deltaTime, 50);
+                Rigidbody.velocity = (FlightRunnerObjectComponents.HeadingObject.transform.forward * FMS.V_AccelMag);
             }
             else
             {
-                //RigidBody.velocity = (FlightRunnerObjectComponents.HeadingObject.transform.forward * flightRunnerMovementSettings.V_AccelMag - Transform.up * flightRunnerMovementSettings.P_Gravity);
-                Rigidbody.velocity = (FlightRunnerObjectComponents.HeadingObject.transform.forward * flightRunnerMovementSettings.V_AccelMag - Transform.up * V_GravityValue);
+                if (FMS.V_IsCollision)
+                {
+                    Rigidbody.velocity = (-Transform.up * V_GravityValue);
+                }
+                else
+                {
+                    Rigidbody.velocity = (FlightRunnerObjectComponents.HeadingObject.transform.forward * FMS.V_AccelMag - Transform.up * V_GravityValue);
+                }
             }
         }
     }
@@ -1264,49 +1263,42 @@ public class PlayerMovement : MonoBehaviour
 
     private void FlightRunner_DetectCollision(float dist)
     {
-        flightRunnerMovementSettings.V_Velocity = Rigidbody.velocity;
+        FMS.V_Velocity = Rigidbody.velocity;
 
-        flightRunnerMovementSettings.V_Ray_Velocity = new Ray(Rigidbody.position, flightRunnerMovementSettings.V_Velocity);
-        Debug.DrawRay(Rigidbody.position, flightRunnerMovementSettings.V_Velocity, Color.red);
-        flightRunnerMovementSettings.V_SpeedReduction = Vector3.zero;
+        FMS.V_Ray_Velocity = new Ray(Rigidbody.position, FMS.V_Velocity);
+        Debug.DrawRay(Rigidbody.position, FMS.V_Velocity, Color.red);
+        FMS.V_SpeedReduction = Vector3.zero;
 
-        flightRunnerMovementSettings.V_IsCollision = false;
+        FMS.V_IsCollision = false;
 
-        if (Physics.RaycastNonAlloc(flightRunnerMovementSettings.V_Ray_Velocity, flightRunnerMovementSettings.V_WallHits, dist, RayCastLayersToHit) > 0)
+        if (Physics.RaycastNonAlloc(FMS.V_Ray_Velocity, FMS.V_WallHits, dist, RayCastLayersToHit) > 0)
         {
-            foreach (RaycastHit collisionHit in flightRunnerMovementSettings.V_WallHits)
+            foreach (RaycastHit collisionHit in FMS.V_WallHits)
             {
                 if (collisionHit.collider == null) continue;
 
-                if (collisionHit.transform.CompareTag(S_Level) || 1==1)
+                if (collisionHit.transform.CompareTag(S_Level) || 1 == 1)
                 {
-                    flightRunnerMovementSettings.V_SpeedReduction = collisionHit.normal;
-                    float xMag = Mathf.Abs(flightRunnerMovementSettings.V_Velocity.x);
-                    float yMag = Mathf.Abs(flightRunnerMovementSettings.V_Velocity.y);
-                    float zMag = Mathf.Abs(flightRunnerMovementSettings.V_Velocity.z);
+                    FMS.V_SpeedReduction = collisionHit.normal;
+                    float xMag = Mathf.Abs(FMS.V_Velocity.x);
+                    float yMag = Mathf.Abs(FMS.V_Velocity.y);
+                    float zMag = Mathf.Abs(FMS.V_Velocity.z);
 
-                    flightRunnerMovementSettings.V_SpeedReduction.x = flightRunnerMovementSettings.V_SpeedReduction.x * xMag * 1.5f;
-                    flightRunnerMovementSettings.V_SpeedReduction.z = flightRunnerMovementSettings.V_SpeedReduction.z * zMag * 1.5f;
+                    FMS.V_SpeedReduction.x = FMS.V_SpeedReduction.x * xMag * 1.5f;
+                    FMS.V_SpeedReduction.z = FMS.V_SpeedReduction.z * zMag * 1.5f;
 
-                    flightRunnerMovementSettings.V_Velocity.x += flightRunnerMovementSettings.V_SpeedReduction.x;
-                    flightRunnerMovementSettings.V_Velocity.z += flightRunnerMovementSettings.V_SpeedReduction.z;
-                    flightRunnerMovementSettings.V_IsCollision = true;
-
-                    flightRunnerMovementSettings.V_AccelMag /= 2;
+                    FMS.V_Velocity.x += FMS.V_SpeedReduction.x;
+                    FMS.V_Velocity.z += FMS.V_SpeedReduction.z;
+                    FMS.V_IsCollision = true;
                 }
 
             }
         }
 
-        Rigidbody.velocity = flightRunnerMovementSettings.V_Velocity;
+        //Rigidbody.velocity = flightRunnerMovementSettings.V_Velocity;
     }
 
-    /// <summary>
-    /// Normalizes inputs to a range of 0 to 1
-    /// </summary>
-    /// <param name="input"></param>
-    /// <param name="inputRange"></param>
-    /// <returns></returns>
+    // Normalizes inputs to a range of 0 to 1
     private float NormalizeInput(float input, InputRange inputRange)
     {
         //Range: -1, 1, normalized to 0, 1
@@ -1331,30 +1323,23 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    /* Photon Event Items Below Here. */
+    #endregion Flight Runner Movement Methods
 
-    /// <summary>
-    /// Add PhotonEvent Callbacks
-    /// </summary>
+    #region PUN: RaiseEvent
+
+    // Add PhotonEvent Callbacks
     private void OnEnable()
     {
         PhotonNetwork.OnEventCall += PhotonNetwork_OnEventCall;
     }
 
-    /// <summary>
-    /// Remove PhotonEvent Callbacks
-    /// </summary>
+    // Remove PhotonEvent Callbacks
     private void OnDisable()
     {
         PhotonNetwork.OnEventCall -= PhotonNetwork_OnEventCall;
     }
 
-    /// <summary>
-    /// PhotonEvent Callbacks
-    /// </summary>
-    /// <param name="eventCode"></param>
-    /// <param name="content"></param>
-    /// <param name="senderId"></param>
+    // PhotonEvent Callbacks
     private void PhotonNetwork_OnEventCall(byte eventCode, object content, int senderId)
     {
         PhotonEventCodes code = (PhotonEventCodes)eventCode;
@@ -1369,6 +1354,7 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    #region PUN -> RaiseEvent: Player Called Methods (Offline / Online Mode Supported)
     private void FlightRunnerDriveType_Event(FlightRunnerDriveType driveType)
     {
         object[] datas = new object[] { driveType };
@@ -1389,17 +1375,20 @@ public class PlayerMovement : MonoBehaviour
 
         }
     }
+    #endregion PUN -> RaiseEvent: Player Called Methods
 
+    #region PUN -> RaiseEvent: Local Methods (For Offline mode or other specific use cases)
     private void UpdateDriveType(FlightRunnerDriveType driveType)
     {
         FlightRunnerDriveType = driveType;
     }
+    #endregion PUN -> RaiseEvent: Local Methods
 
-    //SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS
-    //SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS
-    //SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS - SCRIPT ENDS
+    #endregion PUN: RaiseEvent
 
+    #endregion Main Functions
 
+    #region Unused
     /* Unused
     [PunRPC]
     public void SetKnockBackOverride(bool val, Vector3 newVelocity)
@@ -1408,4 +1397,5 @@ public class PlayerMovement : MonoBehaviour
         playerMovementSettings.V_PlayerVelocity = newVelocity;
     }
     */
+    #endregion
 }
