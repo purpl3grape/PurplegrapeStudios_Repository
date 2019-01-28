@@ -7,6 +7,14 @@ Created: 20181224
 SETUP INSTRUCTIONS (Resolution of import error messages)<br>
 <br>[1] Go to: https://dashboard.photonengine.com/en-US where you can Sign-In to your account, or Create a New account
 <br>[2] Create a new Application with PhotonType: Photon PUN, give it a Name and Description. This now has a new (AppID)
+
+<br>Select a scene and hit Play.
+<br>
+<br>
+<br><b>Only in case of any setup errors:</b>
+<br>
+
+
 <br>[3] Delete folders: Assets/OPS, Assets/Photon Unity Networking, Assets/PhotonChatApi
 <br>[4] Search Asset store: "PUN", and select "Photon Unity Networking Classic - FREE" in the suggested search items.
 <br>[5] Download the package. Uncheck folder: /Photon Unity Networking/Demos/ and import it.
