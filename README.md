@@ -1,4 +1,4 @@
-<b>UNITY VERSION: 2018.3.0f2</b><br>
+<b>UNITY VERSION: 2019.2.0b4</b><br>
 # PurplegrapeStudios
 Photon Unity Networking First Person / Third Person multiplayer game project template. Base template for branching of on other multiplayer projects using the Photon Unity Network package.
 <br>
