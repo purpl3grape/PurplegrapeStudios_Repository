@@ -75,8 +75,10 @@ public class PlayerManagement : MonoBehaviour {
             {
                 c = PlayerScoreLayoutGroup.transform.GetChild(0);
                 c.SetParent(null);
-                //Destroy(c.gameObject);
-                c.gameObject.SetActive(false);
+                Destroy(c.gameObject);
+
+                //We must destroy it otherwise it'll remain in game.
+                //c.gameObject.SetActive(false);
             }
 
             playerScoreListCounter = 0;

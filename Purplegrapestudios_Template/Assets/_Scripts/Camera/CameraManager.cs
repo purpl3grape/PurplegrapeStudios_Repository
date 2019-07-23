@@ -1,17 +1,24 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class CameraManager : MonoBehaviour {
 
     public static CameraManager Instance;
 
+
+    public SpawnCharacterType SpawnCharacterType;
     public GameObject SpectatorCameraPrefab;
     public GameObject SpectatorCapsule;
     public GameObject SpectatorCamera;
 
     public GameObject PlayerCamera;
+    public GameObject PlayerMiniMapCamera;
     GameObject PlayerObject;
+
+    public RenderTexture MiniMapRenderTexture;
+    public GameObject MiniMapImage;
 
     public enum SpectateMode { None, Free };
     public SpectateMode spectateMode;
@@ -60,6 +67,10 @@ public class CameraManager : MonoBehaviour {
 
         CameraMovement();
         UpdateCameraRotation();
+        //MiniMapUpdate();
+
+        //MiniMapZoomPlus();
+        //MiniMapZoomMinus();
 
     }
 
@@ -72,8 +83,21 @@ public class CameraManager : MonoBehaviour {
             {
                 if (Player.GetComponent<PhotonView>().isMine)
                 {
-                    PlayerCamera = Player.GetComponentInChildren<Camera>().gameObject;
+                    if (Player.GetComponentInChildren<Camera>().gameObject.CompareTag("MainCamera"))
+                    {
+                        PlayerCamera = Player.GetComponentInChildren<Camera>().gameObject;
+                    }
+                    if (Player.GetComponent<NetworkPlayerMovement>().SpawnCharacterType.Equals(SpawnCharacterType.Player))
+                    {
+                        PlayerMiniMapCamera = Player.GetComponent<PlayerObjectComponents>().MiniMapCammera;
+                    }
+                    else if (Player.GetComponent<NetworkPlayerMovement>().SpawnCharacterType.Equals(SpawnCharacterType.FlightRunner))
+                    {
+                        PlayerMiniMapCamera = Player.GetComponent<FlightRunnerObjectComponents>().MiniMapCammera;               
+                    }
+
                     PlayerObject = Player;
+                    Debug.Log("Player Obtained");
                 }
             }
         }
@@ -179,4 +203,68 @@ public class CameraManager : MonoBehaviour {
         objectToMove.position = b;
         yield break;
     }
+
+
+    #region MINIMAP CAMERA REGION
+    private void MiniMapUpdate()
+    {
+        //Local Client Minimap Blip Update
+        if (PlayerObject == null)
+        {
+            GetPlayerCamera();
+        }
+        else
+        {
+            if (PlayerObject.GetComponent<NetworkPlayerMovement>().SpawnCharacterType.Equals(SpawnCharacterType.Player))
+            {
+                PlayerObject.GetComponent<PlayerObjectComponents>().MiniMapCammera.GetComponent<Camera>().targetTexture = MiniMapRenderTexture;
+                MiniMapImage.GetComponent<RawImage>().texture = MiniMapRenderTexture;
+            }
+            if (PlayerObject.GetComponent<NetworkPlayerMovement>().SpawnCharacterType.Equals(SpawnCharacterType.FlightRunner))
+            {
+                PlayerObject.GetComponent<FlightRunnerObjectComponents>().MiniMapCammera.GetComponent<Camera>().targetTexture = MiniMapRenderTexture;
+                MiniMapImage.GetComponent<RawImage>().texture = MiniMapRenderTexture;
+            }
+
+        }
+
+        //Other Client's Minimap Blips Update
+
+
+
+    }
+
+    private void MiniMapZoomPlus()
+    {
+        if (InputManager.Instance.GetKeyDown(InputCode.MiniMapZoomPlus))
+        {
+            if (PlayerMiniMapCamera == null)
+            {
+                GetPlayerCamera();
+            }
+            if (PlayerMiniMapCamera.GetComponent<Camera>().orthographicSize < 150)
+            {
+                PlayerMiniMapCamera.GetComponent<Camera>().orthographicSize += 5;
+            }
+        }
+    }
+
+    private void MiniMapZoomMinus()
+    {
+        if (InputManager.Instance.GetKeyDown(InputCode.MiniMapZoomMinus))
+        {
+            if (PlayerMiniMapCamera == null)
+            {
+                GetPlayerCamera();
+            }
+            if (PlayerMiniMapCamera.GetComponent<Camera>().orthographicSize > 20)
+            {
+                PlayerMiniMapCamera.GetComponent<Camera>().orthographicSize -= 5;
+            }
+        }
+    }
+
+
+    #endregion
+
 }

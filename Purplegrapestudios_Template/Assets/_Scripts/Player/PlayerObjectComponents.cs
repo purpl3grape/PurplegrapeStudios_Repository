@@ -12,6 +12,7 @@ public class PlayerObjectComponents : MonoBehaviour
     public GameObject BumperCar;
     public GameObject PlayerLight;
     public GameObject DustPrefab;
+    public GameObject MiniMapCammera;
 
     public NetworkCullingHandler networkCullingHandler;
     public NetworkPlayerMovement networkPlayerMovement;
@@ -25,7 +26,7 @@ public class PlayerObjectComponents : MonoBehaviour
 
     }
 
-
+    //First Person and Third Person Models are on Different Render Layers.
     private void SetLayerRecursively(GameObject obj, int newLayer)
     {
         if (null == obj)
@@ -44,5 +45,8 @@ public class PlayerObjectComponents : MonoBehaviour
             SetLayerRecursively(child.gameObject, newLayer);
         }
     }
+
+    //MiniMap Zooming
+
 
 }

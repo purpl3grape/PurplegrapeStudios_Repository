@@ -17,6 +17,8 @@ public enum InputCode
     ToggleBumperCar,
     Settings,
     Spectate,
+    MiniMapZoomPlus,
+    MiniMapZoomMinus,
 }
 
 public class InputManager : MonoBehaviour {
@@ -43,6 +45,8 @@ public class InputManager : MonoBehaviour {
         buttonKeys[InputCode.ToggleBumperCar] = KeyCode.Mouse2;
         buttonKeys[InputCode.Settings] = KeyCode.Escape;
         buttonKeys[InputCode.Spectate] = KeyCode.Tab;
+        buttonKeys[InputCode.MiniMapZoomPlus] = KeyCode.Equals;
+        buttonKeys[InputCode.MiniMapZoomMinus] = KeyCode.Minus;
     }
 
     private void Awake()

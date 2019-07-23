@@ -14,6 +14,8 @@ public class FlightRunnerObjectComponents : MonoBehaviour
     public GameObject[] BoosterBlades;
     public GameObject FlightRunnerLight;
 
+    public GameObject MiniMapCammera;
+
     void Start()
     {
         
