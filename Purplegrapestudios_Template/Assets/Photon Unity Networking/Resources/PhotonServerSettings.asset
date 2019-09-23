@@ -43,7 +43,6 @@ MonoBehaviour:
   - ResetScore
   - RPC_LoadedGameScene
   - RPC_LoadgameOthers
-  - SetKnockBackOverride
   - SetLastKilled
   - SetScore
   - UpdateStatsForKiller
